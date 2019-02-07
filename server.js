@@ -2,6 +2,7 @@ const hf = require('./helper-files');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const uuidv4 = require('uuid/v4');
 
 // linux
 var rootDir = '/home/sv/WebstormProjects/api/db/';
@@ -25,12 +26,13 @@ app.route('/api/cats/:name').put((req, res) => {
 });
 
 app.route('/api/events').get((req, res) => {
+    // console.log("uuidv4", uuidv4());
     var events = [];
     hf.readFiles(eventsDir)
         .then(files => {
             console.log("loaded ", files.length);
             files.forEach((item, index) => {
-                console.log("item", index, "size ", item.contents.length);
+                console.log("item ", index, " size ", item.contents.length);
                 events.push(JSON.parse(item.contents));
             });
         })
