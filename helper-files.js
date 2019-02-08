@@ -1,10 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-/**
- * Promise all
- * @author Loreto Parisi (loretoparisi at gmail dot com)
- */
 function promiseAllP(items, block) {
     var promises = [];
     items.forEach(function (item, index) {
@@ -15,16 +11,9 @@ function promiseAllP(items, block) {
         }(item, index))
     });
     return Promise.all(promises);
-} //promiseAll
+}
 
-/**
- * read files
- * @param dirname string
- * @return Promise
- * @author Loreto Parisi (loretoparisi at gmail dot com)
- * @see http://stackoverflow.com/questions/10049557/reading-all-files-in-a-directory-store-them-in-objects-and-send-the-object
- */
-exports.readFiles = function(dirname) {
+exports.readFiles = function (dirname) {
     return new Promise((resolve, reject) => {
         fs.readdir(dirname, function (err, filenames) {
             if (err) return reject(err);
@@ -43,4 +32,27 @@ exports.readFiles = function(dirname) {
                 });
         });
     });
-}
+};
+
+exports.writeFiles = function (fileName, content) {
+
+    fs.writeFile(fileName, JSON.stringify(content), function (err) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log("The file was saved!");
+    });
+
+};
+
+exports.readFile = function (fileName) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(fileName, 'utf-8', function (err, content) {
+            if (err) {
+                return console.log(err)
+            }
+            console.log(content);
+            return resolve(content);
+        })
+    });
+};
