@@ -35,14 +35,12 @@ exports.readFiles = function (dirname) {
 };
 
 exports.writeFiles = function (fileName, content) {
-
     fs.writeFile(fileName, JSON.stringify(content), function (err) {
         if (err) {
             return console.log(err);
         }
-        console.log("The file was saved!");
+        console.log("Write file - ", fileName);
     });
-
 };
 
 exports.readFile = function (fileName) {
@@ -51,8 +49,17 @@ exports.readFile = function (fileName) {
             if (err) {
                 return console.log(err)
             }
-            console.log(content);
+            console.log("Read file - ", fileName);
             return resolve(content);
         })
+    });
+};
+
+exports.deleteFile = function (fileName) {
+    fs.unlink(fileName, function (err) {
+        if (err) {
+            return console.log(err);
+        }
+        console.log("Delete file - ", fileName);
     });
 };
