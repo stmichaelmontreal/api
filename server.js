@@ -17,63 +17,50 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 
-app.route('/api/events/:id')
+app.route('/api/events/:action')
     .all(function (req, res, next) {
         console.log("All Event");
         next();
     })
-    .put((req, res) => {
-        const event = req.body;
-        event['timestamp'] = new Date();
-        const id = req.params['id'];
-        hf.writeFiles(eventsDir + id, event);
-        // save to log db
-        console.log("Update Event", id, event);
-        res.status(200).send('OK');
-    })
     .post((req, res) => {
-        const event = req.body;
-        event['timestamp'] = new Date();
-        let id = req.params['id'];
-        if (!id) {
-            id = uuidV4();
+        switch (req.params['action']) {
+            case 'select':
+                const events = {};
+                hf.readFiles(eventsDir)
+                    .then(files => {
+                        files.forEach((item) => {
+                            events[item.filename] = JSON.parse(item.contents);
+                        });
+                        console.log("Get Events length", Object.keys(events).length);
+                        res.status(200).send(events);
+                    });
+                break;
+            case 'add':
+                const event = req.body;
+                event['timestamp'] = new Date();
+                const id = uuidV4();
+                event['id'] = id;
+                hf.writeFiles(eventsDir + id, event);
+                // save to log db
+                console.log("Add Event", id, event);
+                res.status(200).send(id);
+                break;
+            case 'update':
+                const uEvent = JSON.parse(req.body);
+                const uId = uEvent.id;
+                hf.writeFiles(eventsDir + uId, event);
+                // save to log db
+                console.log("Update Event", uId, event);
+                res.status(200).send(id);
+                break;
+            case 'delete':
+                const dEvent = JSON.parse(req.body);
+                const dId = dEvent.id;
+                hf.deleteFile(eventsDir + dId);
+                console.log("Delete Event", dId);
+                res.status(200).send('OK');
+                break;
         }
-        hf.writeFiles(eventsDir + id, event);
-        // save to log db
-        console.log("Add Event", id, event);
-        res.status(201).send(id);
-    })
-    .get((req, res) => {
-        const id = req.params['id'];
-        hf.readFile(eventsDir + id)
-            .then(event => {
-                console.log("Get Event", id, event);
-                res.status(200).send(JSON.parse(event));
-            })
-    })
-    .delete((req, res) => {
-        const id = req.params['id'];
-        hf.deleteFile(eventsDir + id);
-        console.log("Delete Event", id);
-        res.status(204).send('OK');
-    });
-
-
-app.route('/api/events/select')
-    .all(function (req, res, next) {
-        console.log("All Event");
-        next();
-    })
-    .post((req, res) => {
-        const events = {};
-        hf.readFiles(eventsDir)
-            .then(files => {
-                files.forEach((item) => {
-                    events[item.filename] = JSON.parse(item.contents);
-                });
-                console.log("Get Events length", Object.keys(events).length);
-                res.status(200).send(events);
-            });
     });
 
 
