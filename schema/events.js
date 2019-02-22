@@ -6,13 +6,13 @@ const uuidV4 = require('uuid/v4');
 const eventsDir = 'events';
 
 class Event {
-    constructor(id, date, title, img, description, timestamp) {
-        this.id = id;
-        this.date = date;
-        this.title = title;
-        this.img = img;
-        this.description = description;
-        this.timestamp = timestamp;
+    constructor(obj) {
+        this.id = obj.id;
+        this.date = obj.date;
+        this.title = obj.title;
+        this.img = obj.img;
+        this.description = obj.description;
+        this.timestamp = obj.timestamp;
     }
 }
 
@@ -32,11 +32,16 @@ selectEvents = function (req, res) {
 };
 
 addEvent = function (req, res) {
-    const event = JSON.parse(req.body);
-    event['timestamp'] = new Date();
+    const event = new Event(req.body);
+    event.timestamp = new Date();
     const id = uuidV4();
-    event['id'] = id;
-    fdb.writeFile(eventsDir, id, event);
+
+    fdb.addImage(event.img).pipe(
+        map((imgID) => {
+            event.img = imgID;
+            fdb.writeFile(eventsDir, id, event);
+        })
+    ).subscribe();
     // save to log db
     console.log('Event addEvent', id, event);
     res.status(200).send(id);
