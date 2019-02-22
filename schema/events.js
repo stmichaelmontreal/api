@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fdb = require('./fdb');
 const uuidV4 = require('uuid/v4');
+const rxO = require('rxjs/operators');
 
 const eventsDir = 'events';
 
@@ -36,12 +37,13 @@ addEvent = function (req, res) {
     event.timestamp = new Date();
     const id = uuidV4();
 
-    fdb.addImage(event.img).pipe(
-        map((imgID) => {
-            event.img = imgID;
-            fdb.writeFile(eventsDir, id, event);
-        })
-    ).subscribe();
+    fdb.addImage(event.img).subscribe();
+    //.pipe(
+    //     rxO.switchMap((imgID) => {
+    //         event.img = imgID;
+    //         fdb.writeFile(eventsDir, id, event);
+    //     })
+    // )
     // save to log db
     console.log('Event addEvent', id, event);
     res.status(200).send(id);

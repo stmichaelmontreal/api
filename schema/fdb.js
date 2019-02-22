@@ -1,9 +1,14 @@
-const Rx = require('rxjs');
+const rx = require('rxjs');
+const rxO = require('rxjs/operators');
 const fs = require('fs');
 const path = require('path');
 const uuidV4 = require('uuid/v4');
 
-const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+//lin
+// const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+// win
+const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+const imgFDB = path.resolve(rootFDB, 'img');
 
 function promiseAllP(items, block) {
     const promises = [];
@@ -42,16 +47,18 @@ exports.readDir = function (dirName) {
     });
 };
 
-exports.writeFile = function (dirName, id, content) {
-    fs.writeFile(path.resolve(dirName, id), JSON.stringify(content),
-        function (err) {
-            if (err) {
-                return console.log(err);
+function writeFile(dirName, fileName, content, contentType) {
+    const filePath = path.resolve(dirName, fileName);
+    return rx.bindNodeCallback(fs.writeFile)(filePath, content, contentType).pipe(
+        rxO.switchMap(() => {
+                console.log("FDB writeFile - ", filePath);
             }
-            console.log("FDB writeFile - ", path.resolve(dirName, id));
-        }
-    );
-};
+        ),
+        rxO.catchError(error => {
+            console.log(filePath, error)
+        })
+    )
+}
 
 exports.readFile = function (dirName, id) {
     return new Promise((resolve, reject) => {
@@ -78,26 +85,19 @@ exports.deleteFile = function (dirName, id) {
     );
 };
 
-exports.addImage = function (img) {
+function addImage(img) {
     const id = uuidV4();
     const base64Data = img.replace(/^data:image\/png;base64,/, '');
-    const imgFile = path.resolve(rootFDB, 'img', id + '.png');
+    return writeFile(imgFDB, id + '.png', base64Data, 'base64').pipe(
+        rxO.switchMap(() => {
+                console.log("FDB addImage - ", id);
+                return rx.of(id);
+            }
+        )
+    )
 
-    const writeFile$ = Rx.Node.fromNodeCallback(fs.writeFile);
-    return writeFile$(imgFile, base64Data, 'base64').pipe(
-        map(() => {
-            console.log("FDB writeFile - ", imgFile);
-            return id
-        })
-    ).catch((error) => console.log(err))
 
-    // fs.writeFile(imgFile, base64Data, 'base64',
-    //     function (err) {
-    //         if (err) {
-    //             return console.log(err);
-    //         }
-    //         console.log("FDB writeFile - ", imgFile);
-    //     }
-    // );
-    // return id;
-};
+}
+
+module.exports.writeFile = writeFile;
+module.exports.addImage = addImage;
