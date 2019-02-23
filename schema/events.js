@@ -1,8 +1,9 @@
+const rx = require('rxjs');
+const rxO = require('rxjs/operators');
 const express = require('express');
 const router = express.Router();
 const fdb = require('./fdb');
 const uuidV4 = require('uuid/v4');
-const rxO = require('rxjs/operators');
 
 const eventsDir = 'events';
 
@@ -35,18 +36,21 @@ selectEvents = function (req, res) {
 addEvent = function (req, res) {
     const event = new Event(req.body);
     event.timestamp = new Date();
-    const id = uuidV4();
+    event.id = uuidV4();
 
-    fdb.addImage(event.img).subscribe();
-    //.pipe(
-    //     rxO.switchMap((imgID) => {
-    //         event.img = imgID;
-    //         fdb.writeFile(eventsDir, id, event);
-    //     })
-    // )
-    // save to log db
-    console.log('Event addEvent', id, event);
-    res.status(200).send(id);
+    fdb.addImage(event.img).pipe(
+        rxO.switchMap((imgID) => event.img = imgID),
+        rxO.switchMap(() => fdb.writeFile(eventsDir, event.id, JSON.stringify(event))),
+        rxO.switchMap(() => {
+            console.log('Event addEvent', event.id, event);
+            res.status(200).send({id: event.id});
+            return rx.EMPTY;
+        }),
+        rxO.catchError(error => {
+            console.log('Event addEvent Error', event.id, event);
+            res.status(500).send(event.id);
+        })
+    ).subscribe();
 };
 
 updateEvent = function (req, res) {
