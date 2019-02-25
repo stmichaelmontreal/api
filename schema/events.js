@@ -34,13 +34,19 @@ selectEvents = function (req, res) {
 };
 
 addEvent = function (req, res) {
+    const id = uuidV4();
+    const imgId = uuidV4();
     const event = new Event(req.body);
     event.timestamp = new Date();
-    event.id = uuidV4();
+    event.id = id;
+    let img;
+    if (event.img) {
+        img = event.img;
+        event.img = imgId;
+    }
 
-    fdb.addImage(event.img).pipe(
-        rxO.switchMap((imgID) => event.img = imgID),
-        rxO.switchMap(() => fdb.writeFile(eventsDir, event.id, JSON.stringify(event))),
+    fdb.writeFile(eventsDir, event.id, JSON.stringify(event)).pipe(
+        rxO.switchMap((res) => res && img ? fdb.addImage(imgId, img) : rx.EMPTY),
         rxO.switchMap(() => {
             console.log('Event addEvent', event.id, event);
             res.status(200).send({id: event.id});
@@ -54,6 +60,7 @@ addEvent = function (req, res) {
 };
 
 updateEvent = function (req, res) {
+
     const event = JSON.parse(req.body);
     const id = event.id;
     fdb.writeFile(eventsDir, id, event);

@@ -62,19 +62,20 @@ function writeFile(dirName, fileName, content, contentType = 'utf8') {
     )
 }
 
-exports.readFile = function (dirName, id) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(path.resolve(dirName, id), 'utf8',
-            function (err, content) {
-                if (err) {
-                    return console.log(err)
-                }
-                console.log("FDB readFile - ", path.resolve(dirName, id));
-                return resolve(content);
+function readFile(dirName, fileName, contentType = 'utf8') {
+    const filePath = path.resolve(rootFDB, dirName, fileName);
+    return rx.bindNodeCallback(fs.readFile)(filePath, contentType).pipe(
+        rxO.switchMap((content) => {
+                console.log("FDB readFile - ", filePath);
+                return rx.of(content);
             }
-        )
-    });
-};
+        ),
+        rxO.catchError(error => {
+            console.log("FDB readFile - ", filePath, error);
+            return rx.EMPTY;
+        })
+    );
+}
 
 exports.deleteFile = function (dirName, id) {
     fs.unlink(path.resolve(dirName, id),
@@ -87,17 +88,17 @@ exports.deleteFile = function (dirName, id) {
     );
 };
 
-function addImage(img) {
-    const id = uuidV4();
+function addImage(fileName, img) {
     const base64Data = img.replace(/^data:image\/\w+;base64,/, '');
-    return writeFile(imgFDB, id + '.jpg', base64Data, 'base64').pipe(
+    return writeFile(imgFDB, fileName + '.jpg', base64Data, 'base64').pipe(
         rxO.switchMap(() => {
-                console.log("FDB addImage - ", id + '.jpg');
-                return rx.of(id + '.jpg');
+                console.log("FDB addImage - ", fileName + '.jpg');
+                return rx.of(true);
             }
         )
     )
 }
 
+module.exports.readFile = readFile;
 module.exports.writeFile = writeFile;
 module.exports.addImage = addImage;
