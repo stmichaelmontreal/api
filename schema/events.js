@@ -20,23 +20,26 @@ class Event {
 
 
 selectEvents = function (req, res) {
-    const filter = !!req.body && !!req.body.filter ? req.body.filter : undefined;
+    const filter = req.body;
     console.log('Event selectEvents filter: ', filter);
-    const events = [];
-    fdb.readDir(eventsDir)
-        .then(files => {
-            files.forEach((item) => {
-                events.push(JSON.parse(item.contents));
-            });
-            console.log('Event length', events.length);
-            res.status(200).send(events);
-        });
+    // {id:'{0000-000..}'}
+    if (filter) {
+        fdb.selectData(eventsDir, filter).pipe(
+            rxO.switchMap((event) => {
+                res.status(200).send(event);
+                return rx.EMPTY;
+            })
+        ).subscribe();
+    }
 };
 
 addEvent = function (req, res) {
-    const id = uuidV4();
+    let id = uuidV4();
     const imgId = uuidV4();
     const event = new Event(req.body);
+    if (event.hasOwnProperty('id')) {
+        id = event.id;
+    }
     event.timestamp = new Date();
     event.id = id;
     let img;

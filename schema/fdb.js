@@ -5,9 +5,9 @@ const path = require('path');
 const uuidV4 = require('uuid/v4');
 
 //lin
-const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+//const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
 // win
-// const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
 const imgFDB = path.resolve(rootFDB, 'img');
 
 function promiseAllP(items, block) {
@@ -99,6 +99,26 @@ function addImage(fileName, img) {
     )
 }
 
+function selectData(dirName, filter) {
+    let sType = 'NONE';
+    let id;
+    // {id:'{0000-000..}'}
+    if (filter.hasOwnProperty('id')) {
+        id = filter.id.substring(0, 36);
+        sType = 'ONE';
+    }
+    if (sType === 'ONE') {
+        return readFile(dirName, id).pipe(
+            rxO.switchMap((data) => {
+                    console.log("FDB select ONE - ", !!data);
+                    return rx.of(!!data ? [data] : []);
+                }
+            )
+        );
+    }
+}
+
 module.exports.readFile = readFile;
 module.exports.writeFile = writeFile;
 module.exports.addImage = addImage;
+module.exports.selectData = selectData;
