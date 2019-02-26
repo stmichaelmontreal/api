@@ -22,30 +22,23 @@ function promiseAllP(items, block) {
     return Promise.all(promises);
 }
 
-exports.readDir = function (dirName) {
-    return new Promise((resolve, reject) => {
-        const dir = path.resolve(rootFDB, dirName);
-        console.log("FDB readDir - ", dir);
-        fs.readdir(dir, function (err, filenames) {
-            if (err) return reject(err);
-            promiseAllP(filenames,
-                (filename, index, resolve, reject) => {
-                    fs.readFile(path.resolve(dir, filename), 'utf8', function (err, content) {
-                        if (err) {
-                            return reject(err);
-                        }
-                        return resolve({filename: filename, contents: content});
-                    });
-                })
-                .then(results => {
-                    return resolve(results);
-                })
-                .catch(error => {
-                    return reject(error);
-                });
-        });
-    });
-};
+function readDir(dirName) {
+    const contentArr = [];
+    const dir = path.resolve(rootFDB, dirName);
+    console.log("FDB readDir - ", dir);
+    return rx.bindNodeCallback(fs.readdir)(dir).pipe(
+        rxO.switchMap(fileNames => fileNames),
+        rxO.map(fileName =>{
+            console.log(fileName);
+            return readFile(dir, fileName);
+        }),
+        rxO.combineAll(),
+        rxO.catchError(error => {
+            console.log("FDB ERROR readDir - ", dir, error);
+            return rx.EMPTY;
+        })
+    );
+}
 
 function writeFile(dirName, fileName, content, contentType = 'utf8') {
     const filePath = path.resolve(rootFDB, dirName, fileName);
@@ -71,7 +64,7 @@ function readFile(dirName, fileName, contentType = 'utf8') {
             }
         ),
         rxO.catchError(error => {
-            console.log("FDB readFile - ", filePath, error);
+            console.log("FDB ERROR readFile - ", filePath, error);
             return rx.EMPTY;
         })
     );
@@ -102,10 +95,21 @@ function addImage(fileName, img) {
 function selectData(dirName, filter) {
     let sType = 'NONE';
     let id;
+    let top;
+    let orderBy;
+    let where;
     // {id:'{0000-000..}'}
     if (filter.hasOwnProperty('id')) {
         id = filter.id.substring(0, 36);
         sType = 'ONE';
+    } else if (filter.hasOwnProperty('top')
+        // && filter.hasOwnProperty('orderBy')
+        // && filter.hasOwnProperty('where')
+    ) {
+        orderBy = filter.orderBy;
+        top = parseInt(filter.top);
+        where = filter.where;
+        sType = 'MORE';
     }
     if (sType === 'ONE') {
         return readFile(dirName, id).pipe(
@@ -116,6 +120,10 @@ function selectData(dirName, filter) {
             )
         );
     }
+    if (sType === 'MORE') {
+        return readDir(dirName, id);
+    }
+    return rx.of([]);
 }
 
 module.exports.readFile = readFile;

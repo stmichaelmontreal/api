@@ -22,7 +22,6 @@ class Event {
 selectEvents = function (req, res) {
     const filter = req.body;
     console.log('Event selectEvents filter: ', filter);
-    // {id:'{0000-000..}'}
     if (filter) {
         fdb.selectData(eventsDir, filter).pipe(
             rxO.switchMap((event) => {
