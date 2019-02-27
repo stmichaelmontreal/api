@@ -5,22 +5,10 @@ const path = require('path');
 const uuidV4 = require('uuid/v4');
 
 //lin
-//const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
 // win
-const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+//const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
 const imgFDB = path.resolve(rootFDB, 'img');
-
-function promiseAllP(items, block) {
-    const promises = [];
-    items.forEach(function (item, index) {
-        promises.push(function (item) {
-            return new Promise(function (resolve, reject) {
-                return block.apply(this, [item, index, resolve, reject]);
-            });
-        }(item, index))
-    });
-    return Promise.all(promises);
-}
 
 function readDir(dirName) {
     const contentArr = [];
@@ -28,10 +16,7 @@ function readDir(dirName) {
     console.log("FDB readDir - ", dir);
     return rx.bindNodeCallback(fs.readdir)(dir).pipe(
         rxO.switchMap(fileNames => fileNames),
-        rxO.map(fileName =>{
-            console.log(fileName);
-            return readFile(dir, fileName);
-        }),
+        rxO.map(fileName => JSON.parse(readFile(dir, fileName))),
         rxO.combineAll(),
         rxO.catchError(error => {
             console.log("FDB ERROR readDir - ", dir, error);
@@ -70,16 +55,20 @@ function readFile(dirName, fileName, contentType = 'utf8') {
     );
 }
 
-exports.deleteFile = function (dirName, id) {
-    fs.unlink(path.resolve(dirName, id),
-        function (err) {
-            if (err) {
-                return console.log(err);
+function deleteFile(dirName, fileName) {
+    const filePath = path.resolve(rootFDB, dirName, fileName);
+    return rx.bindNodeCallback(fs.unlink)(filePath).pipe(
+        rxO.switchMap(() => {
+                console.log("FDB deleteFile - ", filePath);
+                return rx.of(true);
             }
-            console.log("FDB deleteFile - ", path.resolve(dirName, id));
-        }
+        ),
+        rxO.catchError(error => {
+            console.log("FDB ERROR deleteFile - ", filePath, error);
+            return rx.EMPTY;
+        })
     );
-};
+}
 
 function addImage(fileName, img) {
     const base64Data = img.replace(/^data:image\/\w+;base64,/, '');
@@ -103,8 +92,8 @@ function selectData(dirName, filter) {
         id = filter.id.substring(0, 36);
         sType = 'ONE';
     } else if (filter.hasOwnProperty('top')
-        // && filter.hasOwnProperty('orderBy')
-        // && filter.hasOwnProperty('where')
+    // && filter.hasOwnProperty('orderBy')
+    // && filter.hasOwnProperty('where')
     ) {
         orderBy = filter.orderBy;
         top = parseInt(filter.top);
@@ -115,7 +104,7 @@ function selectData(dirName, filter) {
         return readFile(dirName, id).pipe(
             rxO.switchMap((data) => {
                     console.log("FDB select ONE - ", !!data);
-                    return rx.of(!!data ? [data] : []);
+                    return rx.of(!!data ? [JSON.parse(data)] : []);
                 }
             )
         );
@@ -128,5 +117,6 @@ function selectData(dirName, filter) {
 
 module.exports.readFile = readFile;
 module.exports.writeFile = writeFile;
+module.exports.deleteFile = deleteFile;
 module.exports.addImage = addImage;
 module.exports.selectData = selectData;

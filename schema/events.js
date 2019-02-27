@@ -33,14 +33,10 @@ selectEvents = function (req, res) {
 };
 
 addEvent = function (req, res) {
-    let id = uuidV4();
     const imgId = uuidV4();
     const event = new Event(req.body);
-    if (event.hasOwnProperty('id')) {
-        id = event.id;
-    }
     event.timestamp = new Date();
-    event.id = id;
+    event.id = uuidV4();
     let img;
     if (event.img) {
         img = event.img;
