@@ -5,9 +5,9 @@ const path = require('path');
 const uuidV4 = require('uuid/v4');
 
 //lin
-const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+//const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
 // win
-//const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
 const imgFDB = path.resolve(rootFDB, 'img');
 
 function readDir(dirName) {
@@ -115,8 +115,31 @@ function selectData(dirName, filter) {
     return rx.of([]);
 }
 
+function updateFile(dirName, fileName, content, contentType = 'utf8') {
+    const filePath = path.resolve(rootFDB, dirName, fileName);
+    console.log("FDB updateFile - ", filePath);
+    return readFile(dirName, fileName, contentType).pipe(
+        rxO.switchMap((data) => {
+                const obj = JSON.parse(data);
+                for (const name in obj) {
+                    if (obj.hasOwnProperty(name) && content.hasOwnProperty(name)) {
+                        obj[name] = content[name];
+                    }
+                }
+                return rx.of(obj);
+            }
+        ),
+        rxO.switchMap((updReady) => writeFile(dirName, fileName, updReady, contentType)),
+        rxO.catchError(error => {
+            console.log("FDB ERROR writeFile - ", filePath, error);
+            return rx.of(false);
+        })
+    )
+}
+
 module.exports.readFile = readFile;
 module.exports.writeFile = writeFile;
 module.exports.deleteFile = deleteFile;
 module.exports.addImage = addImage;
 module.exports.selectData = selectData;
+module.exports.updateFile = updateFile;

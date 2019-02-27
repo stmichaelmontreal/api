@@ -39,38 +39,56 @@ describe('TEST Events', () => {
         });
     });
 
-    describe('TEST POST /events/select', () => {
-        it('TEST it should SELECT ONE Event', (done) => {
-            const filter = {
-                id: eventId
-            };
-            chai.request(server)
-                .post('/api/events/select')
-                .send(filter)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.a('array');
-                    res.body.length.should.be.eq(1);
-                    res.body[0].should.have.property('id').eql(eventId);
-                    done();
-                });
-        });
-    });
+    // describe('TEST POST /events/update', () => {
+    //     it('TEST it should UPDATE the Event', (done) => {
+    //         const event = {
+    //             id: eventId,
+    //             date: "2011-10-31"
+    //         };
+    //         chai.request(server)
+    //             .post('/api/events/update')
+    //             .send(event)
+    //             .end((err, res) => {
+    //                 res.should.have.status(200);
+    //                 res.body.should.eql(true);
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('TEST POST /events/select', () => {
+    //     it('TEST it should SELECT ONE Event', (done) => {
+    //         const filter = {
+    //             id: eventId
+    //         };
+    //         chai.request(server)
+    //             .post('/api/events/select')
+    //             .send(filter)
+    //             .end((err, res) => {
+    //                 res.should.have.status(200);
+    //                 res.body.should.be.a('array');
+    //                 res.body.length.should.be.eq(1);
+    //                 res.body[0].should.have.property('id').eql(eventId);
+    //                 res.body[0].should.have.property('date').eql('2011-10-31');
+    //                 done();
+    //             });
+    //     });
+    // });
 
-    describe('TEST POST /events/delete', () => {
-        it('TEST it should DELETE the Event', (done) => {
-            const event = {
-                id: eventId
-            };
-            chai.request(server)
-                .post('/api/events/delete')
-                .send(event)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.be.eql(true);
-                    done();
-                });
-        });
-    });
+    // describe('TEST POST /events/delete', () => {
+    //     it('TEST it should DELETE the Event', (done) => {
+    //         const event = {
+    //             id: eventId
+    //         };
+    //         chai.request(server)
+    //             .post('/api/events/delete')
+    //             .send(event)
+    //             .end((err, res) => {
+    //                 res.should.have.status(200);
+    //                 res.body.should.have.property('id').eql(eventId);
+    //                 done();
+    //             });
+    //     });
+    // });
 
 });

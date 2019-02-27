@@ -35,6 +35,7 @@ selectEvents = function (req, res) {
 addEvent = function (req, res) {
     const imgId = uuidV4();
     const event = new Event(req.body);
+    console.log('addEvent', event);
     event.timestamp = new Date();
     event.id = uuidV4();
     let img;
@@ -58,21 +59,27 @@ addEvent = function (req, res) {
 };
 
 updateEvent = function (req, res) {
-
-    const event = JSON.parse(req.body);
-    const id = event.id;
-    fdb.writeFile(eventsDir, id, event);
-    // save to log db
-    console.log('Event updateEvent', id, event);
-    res.status(200).send(id);
+    const event = new Event(req.body);
+    console.log('Event updateEvent', event.id);
+    fdb.updateFile(eventsDir, event.id, event).pipe(
+        rxO.switchMap(() => res.status(200).send(true)),
+        rxO.catchError(error => {
+            console.log('Event updateEvent ERROR', event, error);
+            res.status(500).send(false);
+        })
+    ).subscribe();
 };
 
 deleteEvent = function (req, res) {
-    const event = JSON.parse(req.body);
-    const id = event.id;
-    fdb.deleteFile(eventsDir, id);
-    console.log('Event deleteEvent', id);
-    res.status(200).send('OK');
+    const event = new Event(req.body);
+    console.log('Event deleteEvent', event.id);
+    fdb.deleteFile(eventsDir, event.id).pipe(
+        rxO.switchMap(() => res.status(200).send(true)),
+        rxO.catchError(error => {
+            console.log('Event deleteEvent ERROR', event.id, event);
+            res.status(500).send(false);
+        })
+    ).subscribe();
 };
 
 router.use(function timeLog(req, res, next) {
