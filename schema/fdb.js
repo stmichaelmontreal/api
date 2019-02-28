@@ -2,7 +2,6 @@ const rx = require('rxjs');
 const rxO = require('rxjs/operators');
 const fs = require('fs');
 const path = require('path');
-const uuidV4 = require('uuid/v4');
 
 //lin
 const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
@@ -73,6 +72,7 @@ function addImage(fileName, content) {
 }
 
 function selectData(dirName, filter) {
+    console.log("FDB select - ", dirName, filter);
     let sType = 'NONE';
     let id;
     let top;
@@ -93,15 +93,15 @@ function selectData(dirName, filter) {
     }
     if (sType === 'ONE') {
         return readFile(dirName, id).pipe(
-            rxO.switchMap((data) => {
-                    console.log("FDB select ONE - ", !!data);
-                    return rx.of(!!data ? [JSON.parse(data)] : []);
-                }
-            )
+            rxO.switchMap((data) => rx.of(!!data ? [JSON.parse(data)] : []))
         );
     }
     if (sType === 'MORE') {
-        return readDir(dirName, id);
+        return readDir(dirName).pipe(
+            rxO.switchMap((data) => {
+                data.filter(where)
+            })
+        );
     }
     return rx.of([]);
 }
