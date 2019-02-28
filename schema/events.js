@@ -6,15 +6,31 @@ const fdb = require('./fdb');
 const uuidV4 = require('uuid/v4');
 
 const eventsDir = 'events';
+const imgDir = 'img';
 
 class Event {
     constructor(obj) {
-        this.id = obj.id;
-        this.date = obj.date;
-        this.title = obj.title;
-        this.img = obj.img;
-        this.description = obj.description;
-        this.timestamp = obj.timestamp;
+        if (obj.id) {
+            this.id = obj.id;
+        }
+        if (obj.date) {
+            this.date = obj.date;
+        }
+        if (obj.title) {
+            this.title = obj.title;
+        }
+        if (obj.thumbnail) {
+            this.thumbnail = obj.thumbnail;
+        }
+        if (obj.img) {
+            this.img = obj.img;
+        }
+        if (obj.description) {
+            this.description = obj.description;
+        }
+        if (obj.timestamp) {
+            this.timestamp = obj.timestamp;
+        }
     }
 }
 
@@ -24,62 +40,73 @@ selectEvents = function (req, res) {
     console.log('Event selectEvents filter: ', filter);
     if (filter) {
         fdb.selectData(eventsDir, filter).pipe(
-            rxO.switchMap((event) => {
-                res.status(200).send(event);
+            rxO.catchError(error => {
+                console.log('Event selectEvents ERROR', error);
+                res.status(500).send(false);
                 return rx.EMPTY;
             })
-        ).subscribe();
+        ).subscribe(event => res.status(200).send(event));
     }
 };
 
 addEvent = function (req, res) {
-    const imgId = uuidV4();
     const event = new Event(req.body);
-    console.log('addEvent', event);
     event.timestamp = new Date();
     event.id = uuidV4();
+    const imgId = uuidV4();
+    const thumbnailId = uuidV4();
     let img;
+    let thumbnail;
     if (event.img) {
         img = event.img;
         event.img = imgId;
     }
+    if (event.thumbnail) {
+        thumbnail = event.thumbnail;
+        event.thumbnail = thumbnailId;
+    }
+    console.log('Event addEvent', event);
 
     fdb.writeFile(eventsDir, event.id, JSON.stringify(event)).pipe(
-        rxO.switchMap((res) => res && img ? fdb.addImage(imgId, img) : rx.EMPTY),
-        rxO.switchMap(() => {
-            console.log('Event addEvent', event.id, event);
-            res.status(200).send({id: event.id});
-            return rx.EMPTY;
-        }),
+        rxO.switchMap(() => img ? fdb.addImage(imgId, img) : rx.of(true)),
+        rxO.switchMap(() => thumbnail ? fdb.addImage(thumbnailId, thumbnail) : rx.of(true)),
         rxO.catchError(error => {
-            console.log('Event addEvent Error', event.id, event);
-            res.status(500).send(event.id);
+            console.log('Event addEvent ERROR', event, error);
+            res.status(500).send(false);
+            return rx.EMPTY;
         })
-    ).subscribe();
+    ).subscribe(() => res.status(200).send({id: event.id}));
 };
 
 updateEvent = function (req, res) {
     const event = new Event(req.body);
-    console.log('Event updateEvent', event.id);
+    console.log('Event updateEvent', event);
     fdb.updateFile(eventsDir, event.id, event).pipe(
-        rxO.switchMap(() => res.status(200).send(true)),
         rxO.catchError(error => {
             console.log('Event updateEvent ERROR', event, error);
             res.status(500).send(false);
+            return rx.EMPTY;
         })
-    ).subscribe();
+    ).subscribe(() => res.status(200).send(true));
 };
 
 deleteEvent = function (req, res) {
-    const event = new Event(req.body);
+    let event = new Event(req.body);
     console.log('Event deleteEvent', event.id);
-    fdb.deleteFile(eventsDir, event.id).pipe(
-        rxO.switchMap(() => res.status(200).send(true)),
+    fdb.readFile(eventsDir, event.id).pipe(
+        rxO.switchMap((data) => {
+            event = new Event(JSON.parse(data));
+            return rx.of(true);
+        }),
+        rxO.switchMap(() => event.id ? fdb.deleteFile(eventsDir, event.id) : rx.of(true)),
+        rxO.switchMap(() => event.img ? fdb.deleteFile(imgDir, event.img) : rx.of(true)),
+        rxO.switchMap(() => event.thumbnail ? fdb.deleteFile(imgDir, event.thumbnail) : rx.of(true)),
         rxO.catchError(error => {
-            console.log('Event deleteEvent ERROR', event.id, event);
+            console.log('Event deleteEvent ERROR', event.id, error);
             res.status(500).send(false);
+            return rx.EMPTY;
         })
-    ).subscribe();
+    ).subscribe(() => res.status(200).send(true));
 };
 
 router.use(function timeLog(req, res, next) {

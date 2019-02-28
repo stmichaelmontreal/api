@@ -5,9 +5,9 @@ const path = require('path');
 const uuidV4 = require('uuid/v4');
 
 //lin
-//const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
 // win
-const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+//const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
 const imgFDB = path.resolve(rootFDB, 'img');
 
 function readDir(dirName) {
@@ -20,7 +20,7 @@ function readDir(dirName) {
         rxO.combineAll(),
         rxO.catchError(error => {
             console.log("FDB ERROR readDir - ", dir, error);
-            return rx.EMPTY;
+            return rx.throwError(error);
         })
     );
 }
@@ -35,7 +35,7 @@ function writeFile(dirName, fileName, content, contentType = 'utf8') {
         ),
         rxO.catchError(error => {
             console.log("FDB ERROR writeFile - ", filePath, error);
-            return rx.of(false);
+            return rx.throwError(error);
         })
     )
 }
@@ -50,35 +50,26 @@ function readFile(dirName, fileName, contentType = 'utf8') {
         ),
         rxO.catchError(error => {
             console.log("FDB ERROR readFile - ", filePath, error);
-            return rx.EMPTY;
+            return rx.throwError(error);
         })
     );
 }
 
 function deleteFile(dirName, fileName) {
     const filePath = path.resolve(rootFDB, dirName, fileName);
+    console.log("FDB deleteFile - ", filePath);
     return rx.bindNodeCallback(fs.unlink)(filePath).pipe(
-        rxO.switchMap(() => {
-                console.log("FDB deleteFile - ", filePath);
-                return rx.of(true);
-            }
-        ),
+        rxO.switchMap(() => rx.of(true)),
         rxO.catchError(error => {
             console.log("FDB ERROR deleteFile - ", filePath, error);
-            return rx.EMPTY;
+            return rx.throwError(error);
         })
     );
 }
 
-function addImage(fileName, img) {
-    const base64Data = img.replace(/^data:image\/\w+;base64,/, '');
-    return writeFile(imgFDB, fileName + '.jpg', base64Data, 'base64').pipe(
-        rxO.switchMap(() => {
-                console.log("FDB addImage - ", fileName + '.jpg');
-                return rx.of(true);
-            }
-        )
-    )
+function addImage(fileName, content) {
+    console.log("FDB addImage - ", fileName);
+    return writeFile(imgFDB, fileName, content.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 }
 
 function selectData(dirName, filter) {
@@ -126,13 +117,16 @@ function updateFile(dirName, fileName, content, contentType = 'utf8') {
                         obj[name] = content[name];
                     }
                 }
-                return rx.of(obj);
+                return rx.of(JSON.stringify(obj));
             }
         ),
-        rxO.switchMap((updReady) => writeFile(dirName, fileName, updReady, contentType)),
+        rxO.switchMap((updReady) => {
+            console.log("writeFile");
+            return writeFile(dirName, fileName, updReady, contentType);
+        }),
         rxO.catchError(error => {
             console.log("FDB ERROR writeFile - ", filePath, error);
-            return rx.of(false);
+            return rx.throwError(error);
         })
     )
 }
