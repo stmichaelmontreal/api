@@ -5,6 +5,7 @@ process.env.NODE_ENV = 'test';
 let chai = require('chai');
 let chaiHttp = require('chai-http');
 let server = require('../server');
+let fdb = require('../schema/fdb');
 let should = chai.should();
 
 let eventId;
@@ -76,20 +77,35 @@ describe('TEST Events', () => {
         });
     });
 
-    describe('TEST POST /events/delete', () => {
-        it('DELETE Event', (done) => {
-            const event = {
-                id: eventId
-            };
-            chai.request(server)
-                .post('/api/events/delete')
-                .send(event)
-                .end((err, res) => {
-                    res.should.have.status(200);
-                    res.body.should.eql(true);
-                    done();
-                });
-        });
-    });
+    // describe('TEST POST /events/select', () => {
+    //     it('SELECT MORE EQUAL Event', (done) => {
+    //         chai.request(server)
+    //             .post('/api/events/select')
+    //             .send({where: new fdb.Where('id', 'equal', eventId)})
+    //             //.send({where:{field: 'id', operator: 'equal', value: eventId}})
+    //             .end((err, res) => {
+    //                 res.should.have.status(200);
+    //                 res.body.should.be.a('array');
+    //                 res.body.length.should.be.eq(1);
+    //                 done();
+    //             });
+    //     });
+    // });
+    //
+    // describe('TEST POST /events/delete', () => {
+    //     it('DELETE Event', (done) => {
+    //         const event = {
+    //             id: eventId
+    //         };
+    //         chai.request(server)
+    //             .post('/api/events/delete')
+    //             .send(event)
+    //             .end((err, res) => {
+    //                 res.should.have.status(200);
+    //                 res.body.should.eql(true);
+    //                 done();
+    //             });
+    //     });
+    // });
 
 });

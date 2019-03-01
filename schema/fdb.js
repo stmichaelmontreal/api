@@ -4,10 +4,18 @@ const fs = require('fs');
 const path = require('path');
 
 //lin
-const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
+//const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
 // win
-//const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
 const imgFDB = path.resolve(rootFDB, 'img');
+
+class Where {
+    constructor(field, operator, value) {
+        this.field = field;
+        this.operator = operator;
+        this.value = value;
+    }
+}
 
 function readDir(dirName) {
     const contentArr = [];
@@ -82,7 +90,7 @@ function selectData(dirName, filter) {
     if (filter.hasOwnProperty('id')) {
         id = filter.id.substring(0, 36);
         sType = 'ONE';
-    } else if (filter.hasOwnProperty('top')
+    } else if (filter.hasOwnProperty('where')
     // && filter.hasOwnProperty('orderBy')
     // && filter.hasOwnProperty('where')
     ) {
@@ -99,11 +107,30 @@ function selectData(dirName, filter) {
     if (sType === 'MORE') {
         return readDir(dirName).pipe(
             rxO.switchMap((data) => {
-                data.filter(where)
+                console.log(data);
+                return rx.of(data.filter(filterWhere.bind(this, where)));
             })
         );
     }
     return rx.of([]);
+}
+
+function filterWhere(where, element) {
+    if (element[where.field]) {
+        switch (where.operator) {
+            case 'greater':
+                return where.value > element[where.field];
+            case 'less':
+                return where.value < element[where.field];
+            case 'not equal':
+                return where.value !== element[where.field];
+            case 'equal':
+                return where.value === element[where.field];
+            default:
+                return false;
+        }
+    }
+    return element > where;
 }
 
 function updateFile(dirName, fileName, content, contentType = 'utf8') {
@@ -137,3 +164,4 @@ module.exports.deleteFile = deleteFile;
 module.exports.addImage = addImage;
 module.exports.selectData = selectData;
 module.exports.updateFile = updateFile;
+module.exports.Where = Where;
