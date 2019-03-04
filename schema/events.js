@@ -81,6 +81,7 @@ addEvent = function (req, res) {
 updateEvent = function (req, res) {
     const event = new Event(req.body);
     console.log('Event updateEvent', event);
+
     fdb.updateFile(eventsDir, event.id, event).pipe(
         rxO.catchError(error => {
             console.log('Event updateEvent ERROR', event, error);
@@ -93,6 +94,7 @@ updateEvent = function (req, res) {
 deleteEvent = function (req, res) {
     let event = new Event(req.body);
     console.log('Event deleteEvent', event.id);
+
     fdb.readFile(eventsDir, event.id).pipe(
         rxO.switchMap((data) => {
             event = new Event(JSON.parse(data));
