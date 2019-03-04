@@ -22,9 +22,18 @@ function readDir(dirName) {
     const dir = path.resolve(rootFDB, dirName);
     console.log("FDB readDir - ", dir);
     return rx.bindNodeCallback(fs.readdir)(dir).pipe(
-        rxO.switchMap(fileNames => fileNames),
-        rxO.map(fileName => JSON.parse(readFile(dir, fileName))),
-        rxO.combineAll(),
+        rxO.map(fileNames => {
+            return fileNames.map(name => readFile(dir, name))
+        }),
+        rxO.concatAll(),
+        rxO.concatMap(allContent => {
+            console.log(allContent);
+            return allContent;
+        }),
+        rxO.combineAll((content) => {
+            console.log(content);
+            return JSON.parse(content);
+        }),
         rxO.catchError(error => {
             console.log("FDB ERROR readDir - ", dir, error);
             return rx.throwError(error);
@@ -49,12 +58,8 @@ function writeFile(dirName, fileName, content, contentType = 'utf8') {
 
 function readFile(dirName, fileName, contentType = 'utf8') {
     const filePath = path.resolve(rootFDB, dirName, fileName);
+    console.log("FDB readFile - ", filePath);
     return rx.bindNodeCallback(fs.readFile)(filePath, contentType).pipe(
-        rxO.switchMap((content) => {
-                console.log("FDB readFile - ", filePath);
-                return rx.of(content);
-            }
-        ),
         rxO.catchError(error => {
             console.log("FDB ERROR readFile - ", filePath, error);
             return rx.throwError(error);
@@ -108,7 +113,8 @@ function selectData(dirName, filter) {
         return readDir(dirName).pipe(
             rxO.switchMap((data) => {
                 console.log(data);
-                return rx.of(data.filter(filterWhere.bind(this, where)));
+                return rx.of(true);
+                // return rx.of(data.filter(filterWhere.bind(this, where)));
             })
         );
     }
