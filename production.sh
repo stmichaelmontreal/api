@@ -39,6 +39,7 @@ pm2 save
 
 
 # api folder
+sudo find /var/www/api/fdb/ -exec chown wwwapi: {} \;
 git pull origin master
 npm install --production
 
