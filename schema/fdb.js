@@ -3,10 +3,12 @@ const rxO = require('rxjs/operators');
 const fs = require('fs');
 const path = require('path');
 
+//prod
+const rootFDB = '/var/www/api/fdb/';
 //lin
 //const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
 // win
-const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+//const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
 const imgFDB = path.resolve(rootFDB, 'img');
 
 class Where {
