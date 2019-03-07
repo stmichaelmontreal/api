@@ -3,12 +3,7 @@ const rxO = require('rxjs/operators');
 const fs = require('fs');
 const path = require('path');
 
-//prod
-const rootFDB = '/var/www/api/fdb/';
-//lin
-//const rootFDB = '/home/sv/WebstormProjects/api/fdb/';
-// win
-//const rootFDB = 'C:\\PRG\\node\\api\\fdb\\';
+const rootFDB = path.resolve(process.cwd(), 'fdb');
 const imgFDB = path.resolve(rootFDB, 'img');
 
 class Where {
@@ -59,7 +54,7 @@ function readFile(dirName, fileName, contentType = 'utf8') {
     const filePath = path.resolve(rootFDB, dirName, fileName);
     console.log("FDB readFile - ", filePath);
     return rx.bindNodeCallback(fs.readFile)(filePath, contentType).pipe(
-        rxO.map(data=> JSON.parse(data)),
+        rxO.map(data => JSON.parse(data)),
         rxO.catchError(error => {
             console.log("FDB ERROR readFile - ", filePath, error);
             return rx.throwError(error);
@@ -106,7 +101,7 @@ function selectData(dirName, filter) {
     }
     if (sType === 'ONE') {
         return readFile(dirName, id).pipe(
-            rxO.switchMap((data) => rx.of(!!data ? [JSON.parse(data)] : []))
+            rxO.switchMap((data) => rx.of(data ? [data] : []))
         );
     }
     if (sType === 'MORE') {
@@ -143,17 +138,16 @@ function updateFile(dirName, fileName, content, contentType = 'utf8') {
     console.log("FDB updateFile - ", filePath);
     return readFile(dirName, fileName, contentType).pipe(
         rxO.switchMap((data) => {
-                const obj = JSON.parse(data);
-                for (const name in obj) {
-                    if (obj.hasOwnProperty(name) && content.hasOwnProperty(name)) {
-                        obj[name] = content[name];
+                for (const name in data) {
+                    if (data.hasOwnProperty(name) && content.hasOwnProperty(name)) {
+                        data[name] = content[name];
                     }
                 }
-                return rx.of(JSON.stringify(obj));
+                return rx.of(JSON.stringify(data));
             }
         ),
         rxO.switchMap((updReady) => {
-            console.log("writeFile");
+            console.log("FDB writeFile", updReady);
             return writeFile(dirName, fileName, updReady, contentType);
         }),
         rxO.catchError(error => {

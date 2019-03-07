@@ -97,8 +97,8 @@ deleteEvent = function (req, res) {
 
     fdb.readFile(eventsDir, event.id).pipe(
         rxO.switchMap((data) => {
-            event = new Event(JSON.parse(data));
-            return rx.of(true);
+            event = data;
+            return event ? rx.of(true) : rx.EMPTY;
         }),
         rxO.switchMap(() => event.id ? fdb.deleteFile(eventsDir, event.id) : rx.of(true)),
         rxO.switchMap(() => event.img ? fdb.deleteFile(imgDir, event.img) : rx.of(true)),
