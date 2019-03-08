@@ -6,6 +6,7 @@ const path = require('path');
 const rootFDB = path.resolve(process.cwd(), 'fdb');
 const imgFDB = path.resolve(rootFDB, 'img');
 
+
 class Where {
     constructor(field, operator, value) {
         this.field = field;
@@ -80,6 +81,8 @@ function addImage(fileName, content) {
 }
 
 function selectData(dirName, filter) {
+    // console.log('EXPRESS.GET', server.settings.fdb);
+
     console.log("FDB select - ", dirName, filter);
     let sType = 'NONE';
     let id;

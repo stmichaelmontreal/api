@@ -4,6 +4,8 @@ const express = require('express');
 const router = express.Router();
 const fdb = require('./fdb');
 const uuidV4 = require('uuid/v4');
+const winston = require('winston');
+const logger = winston.loggers.get('log');
 
 const eventsDir = 'events';
 const imgDir = 'img';
@@ -37,11 +39,11 @@ class Event {
 
 selectEvents = function (req, res) {
     const filter = req.body;
-    console.log('Event selectEvents filter: ', filter);
+    logger.info('Event selectEvents filter: ', filter);
     if (filter) {
         fdb.selectData(eventsDir, filter).pipe(
             rxO.catchError(error => {
-                console.log('Event selectEvents ERROR', error);
+                logger.error('Event selectEvents ERROR', error);
                 res.status(500).send(false);
                 return rx.EMPTY;
             })
