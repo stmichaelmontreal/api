@@ -2,10 +2,11 @@ const rx = require('rxjs');
 const rxO = require('rxjs/operators');
 const fs = require('fs');
 const path = require('path');
+const winston = require('winston');
 
 const rootFDB = path.resolve(process.cwd(), 'fdb');
 const imgFDB = path.resolve(rootFDB, 'img');
-
+const logger = winston.loggers.get('log');
 
 class Where {
     constructor(field, operator, value) {
@@ -76,7 +77,9 @@ function deleteFile(dirName, fileName) {
 }
 
 function addImage(fileName, content) {
-    console.log("FDB addImage - ", fileName);
+    const ext = content.indexOf('data:image/jpg;base64,') > 0 ? '.jpg' : '.png';
+    fileName = fileName + ext;
+    logger.info("FDB addImage - " + fileName);
     return writeFile(imgFDB, fileName, content.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 }
 

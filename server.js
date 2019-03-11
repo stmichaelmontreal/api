@@ -17,16 +17,16 @@ const errorLogStream = rfs('error.log', {
 winston.loggers.add('log', {
     level: 'silly',
     format: winston.format.json(),
-    defaultMeta: {service: 'user-service'},
+    defaultMeta: {service: 'api'},
     transports: [
-        //
-        // - Write to all logs with level `info` and below to `combined.log`
-        // - Write all logs error (and below) to `error.log`.
-        //
         new winston.transports.Stream({stream: errorLogStream, level: 'error'}),
         new winston.transports.Stream({stream: combinedLogStream})
     ]
 });
+
+if (process.env.NODE_ENV !== 'production') {
+    winston.loggers.get('log').transports.push(new winston.transports.Console({level: 'silly'}));
+}
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -40,22 +40,9 @@ const corsOptions = {
 };
 
 
-
-if (process.env.NODE_ENV !== 'production') {
-    // winston.loggers.add('console', {
-    //     format: combine(
-    //         label({ label: 'category one' }),
-    //         json()
-    //     ),
-    //     transports: [
-    //         new winston.transports.Console({ level: 'silly' })
-    //     ]
-    // });
-}
-
 const logger = winston.loggers.get('log');
 const app = express();
-// app.use(morgan('combined', {stream: accessLogStream}));
+app.use(morgan('combined', {stream: combinedLogStream}));
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use('/api', events);
