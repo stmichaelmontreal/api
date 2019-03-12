@@ -55,25 +55,25 @@ addEvent = function (req, res) {
     const event = new Event(req.body);
     event.timestamp = new Date();
     event.id = uuidV4();
-    const imgFileName = uuidV4();
     const thumbnailFileName = uuidV4();
     let img;
     let thumbnail;
     if (event.img) {
-        img = event.img;
-        event.img = imgFileName;
+        img = fdb.getImage(event.img);
+        event.img = uuidV4() + '.' + img.ext;
     }
     if (event.thumbnail) {
         thumbnail = event.thumbnail;
-        event.thumbnail = thumbnailFileName;
+        event.thumbnail = uuidV4() + '.' + thumbnail.ext;
     }
-    console.log('Event addEvent', event);
-
-    fdb.writeFile(eventsDir, event.id, JSON.stringify(event)).pipe(
-        rxO.switchMap(() => img ? fdb.addImage(imgFileName, img) : rx.of(true)),
-        rxO.switchMap(() => thumbnail ? fdb.addImage(thumbnailFileName, thumbnail) : rx.of(true)),
+    logger.info('Event addEvent', event);
+    fdb.writeFile(imgDir, img.ext, img.content, 'base64').pipe(
+        rxO.switchMap(() => thumbnail ?
+            fdb.writeFile(imgDir, thumbnail.ext, thumbnail.content, 'base64') : rx.of(true)),
+        rxO.switchMap(() =>
+            fdb.writeFile(eventsDir, event.id, JSON.stringify(event))),
         rxO.catchError(error => {
-            console.log('Event addEvent ERROR', event, error);
+            logger.error('Event addEvent ERROR', event, error);
             res.status(500).send(false);
             return rx.EMPTY;
         })

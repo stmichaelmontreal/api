@@ -2,7 +2,7 @@ const rfs = require('rotating-file-stream');
 const path = require('path');
 const winston = require('winston');
 const {format} = winston;
-const {combine, label, json} = format;
+const {combine, timestamp, printf, prettyPrint, json} = format;
 
 const combinedLogStream = rfs('combined.log', {
     interval: '1d', // rotate daily
@@ -14,9 +14,16 @@ const errorLogStream = rfs('error.log', {
     path: path.join(__dirname, 'log')
 });
 
+const myFormat = printf(({ level, message, timestamp }) => {
+    return `${timestamp} ${level}: ${message}`;
+});
+
 winston.loggers.add('log', {
     level: 'silly',
-    format: winston.format.json(),
+    format: combine(
+        timestamp(),
+        myFormat
+    ),
     defaultMeta: {service: 'api'},
     transports: [
         new winston.transports.Stream({stream: errorLogStream, level: 'error'}),
@@ -24,8 +31,9 @@ winston.loggers.add('log', {
     ]
 });
 
+const logger = winston.loggers.get('log');
 if (process.env.NODE_ENV !== 'production') {
-    winston.loggers.get('log').transports.push(new winston.transports.Console({level: 'silly'}));
+    logger.add(new winston.transports.Console({level: 'silly'}));
 }
 
 const express = require('express');
@@ -40,7 +48,8 @@ const corsOptions = {
 };
 
 
-const logger = winston.loggers.get('log');
+
+
 const app = express();
 app.use(morgan('combined', {stream: combinedLogStream}));
 app.use(bodyParser.json());
@@ -48,9 +57,7 @@ app.use(cors(corsOptions));
 app.use('/api', events);
 
 app.listen(5050, () => {
-    logger.info('INFO again distributed logs');
-    logger.silly('SILLY again distributed logs');
-    logger.error('ERROR again distributed logs');
+    logger.info('Server started! port:5050');
 });
 
 module.exports = app; // for testing

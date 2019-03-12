@@ -77,10 +77,11 @@ function deleteFile(dirName, fileName) {
 }
 
 function addImage(fileName, content) {
-    const ext = content.indexOf('data:image/jpg;base64,') > 0 ? '.jpg' : '.png';
+    const regExt = /^(data:image\/)(?<ext>[a-z]{3})(;base64)/;
+    const ext = '.' + content.match(regExt).groups.ext;
     fileName = fileName + ext;
     logger.info("FDB addImage - " + fileName);
-    return writeFile(imgFDB, fileName, content.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+    return writeFile(imgFDB, fileName, content.replace(regExt, ''), 'base64');
 }
 
 function selectData(dirName, filter) {
@@ -163,6 +164,12 @@ function updateFile(dirName, fileName, content, contentType = 'utf8') {
     )
 }
 
+function getImage(fileName, content) {
+    const regExt = /^(data:image\/)(?<ext>[a-z]{3})(;base64)/;
+    const ext = '.' + content.match(regExt).groups.ext;
+    return {ext: ext, content: content.replace(regExt, '')};
+}
+
 module.exports.readFile = readFile;
 module.exports.writeFile = writeFile;
 module.exports.deleteFile = deleteFile;
@@ -170,3 +177,4 @@ module.exports.addImage = addImage;
 module.exports.selectData = selectData;
 module.exports.updateFile = updateFile;
 module.exports.Where = Where;
+module.exports.getImage = getImage;
