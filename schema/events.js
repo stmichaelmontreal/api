@@ -55,7 +55,6 @@ addEvent = function (req, res) {
     const event = new Event(req.body);
     event.timestamp = new Date();
     event.id = uuidV4();
-    const thumbnailFileName = uuidV4();
     let img;
     let thumbnail;
     if (event.img) {
@@ -67,9 +66,9 @@ addEvent = function (req, res) {
         event.thumbnail = uuidV4() + '.' + thumbnail.ext;
     }
     logger.info('Event addEvent', event);
-    fdb.writeFile(imgDir, img.ext, img.content, 'base64').pipe(
+    fdb.writeFile(imgDir, event.img, img.content, 'base64').pipe(
         rxO.switchMap(() => thumbnail ?
-            fdb.writeFile(imgDir, thumbnail.ext, thumbnail.content, 'base64') : rx.of(true)),
+            fdb.writeFile(imgDir, event.thumbnail, thumbnail.content, 'base64') : rx.of(true)),
         rxO.switchMap(() =>
             fdb.writeFile(eventsDir, event.id, JSON.stringify(event))),
         rxO.catchError(error => {
@@ -102,9 +101,9 @@ deleteEvent = function (req, res) {
             event = data;
             return event ? rx.of(true) : rx.EMPTY;
         }),
-        rxO.switchMap(() => event.id ? fdb.deleteFile(eventsDir, event.id) : rx.of(true)),
-        rxO.switchMap(() => event.img ? fdb.deleteFile(imgDir, event.img) : rx.of(true)),
         rxO.switchMap(() => event.thumbnail ? fdb.deleteFile(imgDir, event.thumbnail) : rx.of(true)),
+        rxO.switchMap(() => event.img ? fdb.deleteFile(imgDir, event.img) : rx.of(true)),
+        rxO.switchMap(() => event.id ? fdb.deleteFile(eventsDir, event.id) : rx.of(true)),
         rxO.catchError(error => {
             console.log('Event deleteEvent ERROR', event.id, error);
             res.status(500).send(false);
