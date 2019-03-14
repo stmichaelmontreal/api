@@ -2,10 +2,11 @@ const rx = require('rxjs');
 const rxO = require('rxjs/operators');
 const fs = require('fs');
 const path = require('path');
+const winston = require('winston');
 
 const rootFDB = path.resolve(process.cwd(), 'fdb');
 const imgFDB = path.resolve(rootFDB, 'img');
-
+const logger = winston.loggers.get('log');
 
 class Where {
     constructor(field, operator, value) {
@@ -76,8 +77,11 @@ function deleteFile(dirName, fileName) {
 }
 
 function addImage(fileName, content) {
-    console.log("FDB addImage - ", fileName);
-    return writeFile(imgFDB, fileName, content.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+    const regExt = /^(data:image\/)(?<ext>[a-z]{3})(;base64)/;
+    const ext = '.' + content.match(regExt).groups.ext;
+    fileName = fileName + ext;
+    logger.info("FDB addImage - " + fileName);
+    return writeFile(imgFDB, fileName, content.replace(regExt, ''), 'base64');
 }
 
 function selectData(dirName, filter) {
@@ -160,6 +164,12 @@ function updateFile(dirName, fileName, content, contentType = 'utf8') {
     )
 }
 
+function getImage(content) {
+    const regExt = /^(data:image\/)(?<ext>[a-z]{3})(;base64)/;
+    const ext = content.match(regExt).groups.ext;
+    return {ext: ext, content: content.replace(regExt, '')};
+}
+
 module.exports.readFile = readFile;
 module.exports.writeFile = writeFile;
 module.exports.deleteFile = deleteFile;
@@ -167,3 +177,4 @@ module.exports.addImage = addImage;
 module.exports.selectData = selectData;
 module.exports.updateFile = updateFile;
 module.exports.Where = Where;
+module.exports.getImage = getImage;

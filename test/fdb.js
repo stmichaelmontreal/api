@@ -8,11 +8,67 @@ let server = require('../server');
 let fdb = require('../schema/fdb');
 let should = chai.should();
 
-let eventId = '368a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc';
-
+const test1 = {
+    "id": '111a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc',
+    "date": "2010-01-01",
+    "title": "Title not to long 1",
+    "description": "This description will be used for search test.",
+    "count": 1
+};
+const test2 = {
+    "id": '222a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc',
+    "date": "2010-01-02",
+    "title": "Title not to long 2",
+    "description": "This description will be used for search test.",
+    "count": 2
+};
+const test3 = {
+    "id": '333a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc',
+    "date": "2010-01-03",
+    "title": "Title not to long 3",
+    "description": "This description will be used for search test.",
+    "count": 3
+};
+const testDir = 'test';
 chai.use(chaiHttp);
 
+describe('FDB TEST', () => {
+
+    before(function() {
+        fdb.writeFile(testDir, test1.id, JSON.stringify(test1)).subscribe();
+        fdb.writeFile(testDir, test1.id, JSON.stringify(test2)).subscribe();
+        fdb.writeFile(testDir, test1.id, JSON.stringify(test3)).subscribe();
+    });
+
+    after(function() {
+        // runs after all tests in this block
+    });
+
+    describe('SELECT', () => {
+        it(' by ID', (done) => {
+            const filter = {
+                id: test1.id
+            };
+        });
+        it('SELECT ONE Event by ID - TEST UPDATE', (done) => {
+            const filter = {
+                id: test1.id
+            };
+        });
+        it('DELETE Event', (done) => {
+            const filter = {
+                id: test1.id
+            };
+        });
+    });
+
+});
+
 describe('TEST Events', () => {
+
+    // beforeEach((done) => {
+    //     // Before each test we empty the database
+    // });
 
     describe('ADD, UPDATE, DELETE', () => {
         it('ADD Event', (done) => {
@@ -48,7 +104,7 @@ describe('TEST Events', () => {
                     done();
                 });
         });
-        it('SELECT ONE Event by ID - TEST UPDATE', (done) => {
+        it('SELECT ONE Event by ID', (done) => {
             const filter = {
                 "id": eventId
             };
@@ -61,6 +117,21 @@ describe('TEST Events', () => {
                     res.body.length.should.be.eq(1);
                     res.body[0].should.have.property('id').eql(eventId);
                     res.body[0].should.have.property('date').eql('2011-10-31');
+                    done();
+                });
+        });
+        it('SELECT Event EQUAL ', (done) => {
+            const filter = {
+                "where": new fdb.Where('id', 'equal', eventId)
+            };
+            chai.request(server)
+                .post('/api/events/select')
+                .send()
+                //.send({where:{field: 'id', operator: 'equal', value: eventId}})
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.be.a('array');
+                    res.body.length.should.be.eq(1);
                     done();
                 });
         });
