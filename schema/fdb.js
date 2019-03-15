@@ -126,13 +126,18 @@ function filterWhere(where, element) {
     if (element[where.field]) {
         switch (where.operator) {
             case 'greater':
-                return where.value > element[where.field];
-            case 'less':
                 return where.value < element[where.field];
+            case 'less':
+                return where.value > element[where.field];
             case 'not equal':
                 return where.value !== element[where.field];
             case 'equal':
                 return where.value === element[where.field];
+            case 'regex':
+                const regex = new RegExp(where.value);
+                return regex.test(element[where.field]);
+            case 'contains':
+                return element[where.field].indexOf(where.value);
             default:
                 return false;
         }
