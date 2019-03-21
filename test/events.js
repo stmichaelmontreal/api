@@ -5,7 +5,7 @@ process.env.NODE_ENV = 'test';
 let chai = require('chai');
 let chaiHttp = require('chai-http');
 let server = require('../server');
-let fdb = require('../schema/fdb');
+let fdb = require('../fdb-lib/fdb');
 let should = chai.should();
 
 let eventId = '368a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc';

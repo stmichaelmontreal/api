@@ -3,6 +3,7 @@
 folders=(
 "events"
 "img"
+"test"
 )
 
 for folder in "${folders[@]}"

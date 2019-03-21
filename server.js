@@ -1,40 +1,6 @@
-const rfs = require('rotating-file-stream');
-const path = require('path');
+require('loggers');
 const winston = require('winston');
-const {format} = winston;
-const {combine, timestamp, printf, prettyPrint, json} = format;
-
-const combinedLogStream = rfs('combined.log', {
-    interval: '1d', // rotate daily
-    path: path.join(__dirname, 'log')
-});
-
-const errorLogStream = rfs('error.log', {
-    interval: '1d', // rotate daily
-    path: path.join(__dirname, 'log')
-});
-
-const myFormat = printf(({ level, message, timestamp }) => {
-    return `${timestamp} ${level}: ${message}`;
-});
-
-winston.loggers.add('log', {
-    level: 'silly',
-    format: combine(
-        timestamp(),
-        myFormat
-    ),
-    defaultMeta: {service: 'api'},
-    transports: [
-        new winston.transports.Stream({stream: errorLogStream, level: 'error'}),
-        new winston.transports.Stream({stream: combinedLogStream})
-    ]
-});
-
-const logger = winston.loggers.get('log');
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({level: 'silly'}));
-}
+const log = winston.loggers.get('log');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -47,8 +13,7 @@ const corsOptions = {
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
-
-
+const port = process.env.PORT || '5050';
 
 const app = express();
 app.use(morgan('combined', {stream: combinedLogStream}));
@@ -56,8 +21,8 @@ app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use('/api', events);
 
-app.listen(5050, () => {
-    logger.info('Server started! port:5050');
+app.listen(port, () => {
+    log.info('Server started! port:' + port);
 });
 
 module.exports = app; // for testing
