@@ -72,7 +72,7 @@ addEvent = function (req, res) {
         rxO.switchMap(() =>
             fdb.writeFile(eventsDir, event.id, JSON.stringify(event))),
         rxO.catchError(error => {
-            logger.error('Event addEvent ERROR', event, error);
+            logger.error({action: 'Event addEvent ERROR', event: event, error: error});
             res.status(500).send(false);
             return rx.EMPTY;
         })
