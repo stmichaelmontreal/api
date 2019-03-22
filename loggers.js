@@ -72,3 +72,5 @@ if (process.env.NODE_ENV !== 'production') {
     log.add(new winston.transports.Console({level: 'silly'}));
     fdb.add(new winston.transports.Console({level: 'silly'}));
 }
+
+module.exports.combinedLogStream = combinedLogStream;

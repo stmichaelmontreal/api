@@ -1,4 +1,5 @@
-require('loggers');
+const path = require('path');
+const loggers = require(path.join(__dirname, 'loggers'));
 const winston = require('winston');
 const log = winston.loggers.get('log');
 
@@ -16,7 +17,7 @@ const corsOptions = {
 const port = process.env.PORT || '5050';
 
 const app = express();
-app.use(morgan('combined', {stream: combinedLogStream}));
+app.use(morgan('combined', {stream: loggers.combinedLogStream}));
 app.use(bodyParser.json());
 app.use(cors(corsOptions));
 app.use('/api', events);
