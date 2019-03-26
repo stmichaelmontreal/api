@@ -72,7 +72,7 @@ addEvent = function (req, res) {
         rxO.switchMap(() =>
             fdb.writeFile(eventsDir, event.id, JSON.stringify(event))),
         rxO.catchError(error => {
-            logger.error({action: 'Event addEvent ERROR', event: event, error: error});
+            logger.error('Event addEvent ERROR', event, error);
             res.status(500).send(false);
             return rx.EMPTY;
         })
@@ -136,3 +136,21 @@ router.post('/events/:action', (req, res) => {
 });
 
 module.exports = router;
+
+//
+// const path = require('path')
+// const db = require(path.join(__dirname, 'db'))
+//
+// function selectEvents() {
+//     return db.query("SELECT * FROM test.tbl_events WHERE event_id = ?", ['1111']);
+// }
+//
+// function addEvents(sql, values) {
+//     return db.query(sql, values);
+// }
+//
+// module.exports.selectEvents = selectEvents;
+// module.exports.addEvents = addEvents
+//
+// // INSERT INTO `test`.`tbl_events` (`event_id`, `event_title`, `event_date`, `event_desc`, `event_count`)
+// // VALUES ('sdsa', 'sdf', '2010-01-01', 'sdf', 'sdfsdf');

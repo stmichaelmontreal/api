@@ -25,7 +25,7 @@ const test2 = {
     "id": '222a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc',
     "date": "2010-01-10",
     "title": "Title not to long 2",
-    "description": "This description will be used for search test.",
+    "description": "This description will be used for search test. 222222222222222222222222222 ",
     "count": 2
 };
 const test3 = {
@@ -47,12 +47,12 @@ describe('FDB TEST', () => {
         ).subscribe(() => done())
     });
 
-    // after((done) => {
-    //     fdb.deleteFile(testDir, test1.id).pipe(
-    //         rxO.switchMap(() => fdb.deleteFile(testDir, test2.id)),
-    //         rxO.switchMap(() => fdb.deleteFile(testDir, test3.id))
-    //     ).subscribe(() => done())
-    // });
+    after((done) => {
+        fdb.deleteFile(testDir, test1.id).pipe(
+            rxO.switchMap(() => fdb.deleteFile(testDir, test2.id)),
+            rxO.switchMap(() => fdb.deleteFile(testDir, test3.id))
+        ).subscribe(() => done())
+    });
 
     describe('SELECT STRING', () => {
         it('ID one file', (done) => {
@@ -209,49 +209,6 @@ describe('FDB TEST', () => {
         });
 
 
-    });
-
-    describe('WRITE WILES', () => {
-        it('ID one file', (done) => {
-            let i;
-            let j = 0;
-            for (i = 0; i < 50000; i++) {
-                if (i === 25000) {
-                    fdb.writeFile(testDir, test2.id, JSON.stringify(test2)).subscribe(() => {
-                        j++;
-                        if (j === 50000) {
-                            done();
-                        }
-                    });
-                } else {
-                    test1.id = uuidV4();
-                    const data = JSON.stringify(test1);
-                    fdb.writeFile(testDir, test1.id, data).subscribe(() => {
-                        j++;
-                        if (j === 50000) {
-                            done();
-                        }
-                    });
-                }
-            }
-        });
-        it('WHERE str_equal', (done) => {
-            const filter = {
-                "where": new fdb.Where('id', 'str_equal', test2.id)
-            };
-            fdb.select(testDir, filter)
-                .subscribe(data => {
-                    data[0].id.should.have.be.equal(test2.id);
-                    done();
-                });
-        });
-        it('DELETE Files', (done) => {
-            fdb.readDir(testDir).pipe(
-                rxO.flatMap(fileNames =>
-                    rx.forkJoin(fileNames.map(fileName =>
-                        fdb.deleteFile(testDir, fileName.id)))),
-            ).subscribe(done());
-        });
     });
 
 });

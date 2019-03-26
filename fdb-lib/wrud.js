@@ -31,16 +31,13 @@ function readDir(dirName) {
     // logger.info({action: 'readDir', dirName: dirName});
     const dir = path.resolve(rootFDB, dirName);
     return rx.bindNodeCallback(fs.readdir)(dir).pipe(
-        rxO.flatMap(fileNames => rx.forkJoin(fileNames.map(fileName => readFile(dir, fileName)))),
-        // const contents = [];
+        // one call for all files has limitation open files
+        // rxO.flatMap(fileNames => rx.forkJoin(fileNames.map(fileName => readFile(dir, fileName)))),
         // one by one file good for big db
-        // rxO.flatMap(fileNames => fileNames),
-        // rxO.map(fileName => readFile(dir, fileName)),
-        // rxO.mergeAll(),
-        // rxO.mergeMap((content) => {
-        //     console.log('concatMap', content);
-        //     return rx.of(JSON.parse(content));
-        // }),
+        rxO.flatMap(fileNames => fileNames),
+        rxO.map(fileName => readFile(dir, fileName)),
+        rxO.concatAll(),
+        rxO.concatMap((content) => rx.of(content)),
         rxO.catchError(error => {
             logger.error({action: 'readDir', dirName: dirName, error: error});
             return rx.throwError(error);

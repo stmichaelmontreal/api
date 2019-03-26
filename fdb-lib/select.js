@@ -46,7 +46,8 @@ function select(dirName, filter) {
         return wrud.readDir(dirName).pipe(
             rxO.switchMap((data) => {
                 // console.log(data);
-                return rx.of(data.filter(filterWhere.bind(this, where)));
+                // return rx.of(data.filter(filterWhere.bind(this, where)));
+                return rx.of(filterWhere(where, data) ? data : undefined);
             })
         );
     }
