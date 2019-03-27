@@ -1,12 +1,13 @@
 const mysql = require('mysql')
 const rx = require('rxjs')
 const rxO = require('rxjs/operators')
+const CONFIG = require('../config/config')
 
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'MyPDBPassword',
-    database: 'test'
+    host: CONFIG.db_host,
+    user: CONFIG.db_user,
+    password: CONFIG.db_password,
+    database: CONFIG.db_name
 })
 
 const getConnection = function (callback) {

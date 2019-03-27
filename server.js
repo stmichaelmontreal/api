@@ -1,4 +1,4 @@
-require('loggers');
+const loggers = require('./loggers');
 const winston = require('winston');
 const log = winston.loggers.get('log');
 
@@ -13,16 +13,16 @@ const corsOptions = {
     optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
-const port = process.env.PORT || '5050';
+const CONFIG = require('./config/config')
 
-const app = express();
-app.use(morgan('combined', {stream: combinedLogStream}));
-app.use(bodyParser.json());
-app.use(cors(corsOptions));
-app.use('/api', events);
+const app = express()
+app.use(morgan('combined', {stream: loggers.combinedLogStream}))
+app.use(bodyParser.json())
+app.use(cors(corsOptions))
+app.use('/api', events)
 
-app.listen(port, () => {
-    log.info('Server started! port:' + port);
+app.listen(CONFIG.port, () => {
+    log.info('Server started! port:' + CONFIG.port)
 });
 
-module.exports = app; // for testing
+module.exports = app // for testing
