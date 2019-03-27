@@ -15,6 +15,7 @@ const corsOptions = {
 
 const CONFIG = require('./config/config')
 
+
 const app = express()
 app.use(morgan('combined', {stream: loggers.combinedLogStream}))
 app.use(bodyParser.json())
