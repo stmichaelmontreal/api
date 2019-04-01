@@ -65,19 +65,15 @@ describe('EVENTS', () => {
                     done();
                 });
         });
-        // it('DELETE Event', (done) => {
-        //     const event = {
-        //         id: eventId
-        //     };
-        //     chai.request(server)
-        //         .post('/api/events/delete')
-        //         .send(event)
-        //         .end((err, res) => {
-        //             res.should.have.status(200);
-        //             res.body.should.eql(true);
-        //             done();
-        //         });
-        // });
+        it('DELETE Event', (done) => {
+            chai.request(server)
+                .delete('/api/events/' + test_record_2.e_id)
+                .end((err, res) => {
+                    res.should.have.status(200);
+                    res.body.should.eql(true);
+                    done();
+                });
+        });
     });
 
 });
