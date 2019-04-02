@@ -21,4 +21,4 @@ app.listen(CONFIG.port, () => {
     log.info('Server started! port:' + CONFIG.port)
 })
 
-module.exports = app // for testing1
+module.exports = app // for testing

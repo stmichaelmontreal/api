@@ -13,7 +13,6 @@ const should = chai.should();
 
 const uuidV4 = require('uuid/v4');
 
-
 const test1 = {
     "id": '111a0db0-0e8e-47d9-b3ee-e59b1bc1dbbc',
     "date": "2010-01-01",
@@ -70,8 +69,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('id', 'str_equal', test1.id)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
+                    data['id'].should.have.be.equal(test1.id);
                     done();
                 });
         });
@@ -80,8 +80,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('title', 'str_contains', 'contains 1')
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
+                    data['id'].should.have.be.equal(test1.id);
                     done();
                 });
         });
@@ -90,8 +91,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('id', 'str_regex', '^111')
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
+                    data['id'].should.have.be.equal(test1.id);
                     done();
                 });
         });
@@ -104,8 +106,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('count', 'num_equal', test1.count)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].count.should.have.be.equal(test1.count);
+                    data['count'].should.have.be.equal(test1.count);
                     done();
                 });
         });
@@ -113,11 +116,18 @@ describe('FDB TEST', () => {
             const filter = {
                 "where": new fdb.Where('count', 'num_not_equal', test1.count)
             };
+            let i = 0;
             fdb.select(testDir, filter)
+                .pipe(rxO.take(5))
                 .subscribe(data => {
-                    data[0].count.should.have.be.equal(test2.count);
-                    data[1].count.should.have.be.equal(test3.count);
-                    done();
+                    if (data && i === 1) {
+                        data['count'].should.have.be.equal(test3.count);
+                        done();
+                    }
+                    if (data && i === 0) {
+                        data['count'].should.have.be.equal(test2.count);
+                        i++;
+                    }
                 });
         });
         it('WHERE num_greater', (done) => {
@@ -125,8 +135,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('count', 'num_greater', 2)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test3.id);
+                    data['id'].should.have.be.equal(test3.id);
                     done();
                 });
         });
@@ -135,8 +146,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('count', 'num_less', 2)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
+                    data['id'].should.have.be.equal(test1.id);
                     done();
                 });
         });
@@ -150,8 +162,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('date', 'date_equal', test1.date)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
+                    data['id'].should.have.be.equal(test1.id);
                     done();
                 });
         });
@@ -160,8 +173,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('date', 'date_before', test2.date)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
+                    data['id'].should.have.be.equal(test1.id);
                     done();
                 });
         });
@@ -170,8 +184,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('date', 'date_after', test2.date)
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test3.id);
+                    data['id'].should.have.be.equal(test3.id);
                     done();
                 });
         });
@@ -179,22 +194,36 @@ describe('FDB TEST', () => {
             const filter = {
                 "where": new fdb.Where('date', 'date_same_or_before', test2.date)
             };
+            let i = 0;
             fdb.select(testDir, filter)
+                .pipe(rxO.take(5))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test1.id);
-                    data[1].id.should.have.be.equal(test2.id);
-                    done();
+                    if (data && i === 1) {
+                        data['id'].should.have.be.equal(test2.id);
+                        done();
+                    }
+                    if (data && i === 0) {
+                        data['id'].should.have.be.equal(test1.id);
+                        i++;
+                    }
                 });
         });
         it('WHERE date_same_or_after', (done) => {
             const filter = {
                 "where": new fdb.Where('date', 'date_same_or_after', test2.date)
             };
+            let i = 0;
             fdb.select(testDir, filter)
+                .pipe(rxO.take(5))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test2.id);
-                    data[1].id.should.have.be.equal(test3.id);
-                    done();
+                    if (data && i === 1) {
+                        data['id'].should.have.be.equal(test3.id);
+                        done();
+                    }
+                    if (data && i === 0) {
+                        data['id'].should.have.be.equal(test2.id);
+                        i++;
+                    }
                 });
         });
         it('WHERE date_between', (done) => {
@@ -202,8 +231,9 @@ describe('FDB TEST', () => {
                 "where": new fdb.Where('date', 'date_between', {d1: test1.date, d2: test3.date})
             };
             fdb.select(testDir, filter)
+                .pipe(rxO.first(isNotUndefined => isNotUndefined))
                 .subscribe(data => {
-                    data[0].id.should.have.be.equal(test2.id);
+                    data['id'].should.have.be.equal(test2.id);
                     done();
                 });
         });
@@ -212,7 +242,3 @@ describe('FDB TEST', () => {
     });
 
 });
-
-// data.should.be.a('array');
-// data.length.should.be.eq(1);
-// data[0].should.have.property('id');

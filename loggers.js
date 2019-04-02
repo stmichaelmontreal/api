@@ -4,15 +4,13 @@ const {format} = winston
 const {combine, timestamp, printf, prettyPrint, json} = format
 const path = require('path')
 
-console.log('log __dirname', path.join(__dirname, 'log'))
-
 const combinedLogStream = rfs('combined.log', {
-    interval: '1d', // rotate daily
+    interval: '1m', // rotate daily
     path: path.join(__dirname, 'log')
 })
 
 const errorLogStream = rfs('error.log', {
-    interval: '1d', // rotate daily
+    interval: '1m', // rotate daily
     path: path.join(__dirname, 'log')
 })
 
@@ -26,16 +24,11 @@ const fdbErrorLogStream = rfs('fdb_error.log', {
     path: path.join(__dirname, 'log')
 })
 
-const fdbSillyLogStream = rfs('fdb_silly.log', {
-    interval: '1m', // rotate monthly
-    path: path.join(__dirname, 'log')
-})
-
-const myFormat = printf(({ level, message, timestamp }) => {
+const myFormat = printf(({ timestamp, level, message }) => {
     return `${timestamp} ${level}: ${message}`
 })
 
-const fdbFormat = printf(({ level, message, timestamp }) => {
+const fdbFormat = printf(({ timestamp, level, message }) => {
     return `${timestamp} ${level}: ${message}`
 })
 
@@ -43,7 +36,7 @@ winston.loggers.add('log', {
     level: 'silly',
     format: combine(
         timestamp(),
-        myFormat
+        json()
     ),
     defaultMeta: {service: 'api'},
     transports: [
@@ -56,21 +49,20 @@ winston.loggers.add('fdb', {
     level: 'silly',
     format: combine(
         timestamp(),
-        fdbFormat
+        json()
     ),
     defaultMeta: {service: 'fdb'},
     transports: [
         new winston.transports.Stream({stream: fdbLogStream}),
         new winston.transports.Stream({stream: fdbErrorLogStream, level: 'error'}),
-        new winston.transports.Stream({stream: fdbSillyLogStream, level: 'info'}),
     ]
 })
 
 const log = winston.loggers.get('log')
 const fdb = winston.loggers.get('fdb')
 if (process.env.NODE_ENV !== 'production') {
-    log.add(new winston.transports.Console({level: 'silly'}))
-    fdb.add(new winston.transports.Console({level: 'silly'}))
+    log.add(new winston.transports.Console({level: 'info'}))
+    fdb.add(new winston.transports.Console({level: 'info'}))
 }
 
 module.exports.combinedLogStream = combinedLogStream

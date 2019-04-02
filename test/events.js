@@ -1,16 +1,15 @@
-//During the test the env variable is set to test
+// During the test the env variable is set to test
 process.env.NODE_ENV = 'test';
 
-//Require the dev-dependencies
+// Require the dev-dependencies
 let chai = require('chai');
 let chaiHttp = require('chai-http');
-let server = require('../server');
-let fdb = require('../fdb-lib/fdb');
+chai.use(chaiHttp);
 let should = chai.should();
 
-let eventId = undefined;
+let server = require('../server');
 
-chai.use(chaiHttp);
+let eventId = undefined;
 
 const test_record_1 = {
     "e_id": eventId,

@@ -43,11 +43,12 @@ function select(dirName, filter) {
         );
     }
     if (sType === 'MORE') {
+        const result = [];
         return wrud.readDir(dirName).pipe(
-            rxO.switchMap((data) => {
-                // console.log(data);
-                // return rx.of(data.filter(filterWhere.bind(this, where)));
-                return rx.of(filterWhere(where, data) ? data : undefined);
+            rxO.map((data) => {
+                if (filterWhere(where, data)) {
+                    return data;
+                }
             })
         );
     }
@@ -65,7 +66,7 @@ function filterWhere(where, element) {
                 const regex = new RegExp(where.value);
                 return regex.test(element[where.field]);
             case 'str_contains':
-                return element[where.field].indexOf(where.value);
+                return element[where.field].indexOf(where.value) >= 0;
 
             // number
             case 'num_equal':
