@@ -1,5 +1,5 @@
 const CONFIG = require('../config/config')
-const logger = CONFIG.logger;
+const logger = CONFIG.logger
 const mysql = require('mysql')
 const rx = require('rxjs')
 const rxO = require('rxjs/operators')
@@ -19,7 +19,7 @@ const getConnection = function (callback) {
 
 const queryFP = function query(conn, sql, values, callback) {
     conn.query(sql, values, function (err, results, fields) {
-        conn.release();
+        conn.release()
         callback(err, {rows: results, fields: fields})
     })
 }
@@ -28,7 +28,7 @@ function query(queryStr, values) {
     return rx.bindNodeCallback(getConnection)().pipe(
         rxO.switchMap(conn => conn ? rx.bindNodeCallback(queryFP)(conn, queryStr, values) : rx.EMPTY),
         rxO.catchError(error => {
-            logger.error({action: 'DB query', error: error});
+            logger.error({action: 'DB query', error: error})
             return rx.throwError(error)
         })
     )

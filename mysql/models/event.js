@@ -8,11 +8,6 @@ const uuidV4 = require('uuid/v4')
 
 class Event {
 
-    static selectAll() {
-        const sql = 'SELECT * FROM tbl_events'
-        return db.query(sql)
-    }
-
     constructor(obj) {
         if (obj.e_id) {
             this.e_id = obj.e_id
@@ -37,6 +32,21 @@ class Event {
         }
     }
 
+    static selectAll() {
+        const sql = 'SELECT * FROM t_events'
+        return db.query(sql)
+    }
+
+    static selectLimit(startIndex, numberOfRecords) {
+        const sql = 'SELECT * FROM t_events ORDER BY e_date LIMIT ?, ?'
+        return db.query(sql, [startIndex, numberOfRecords])
+    }
+
+    selectOne() {
+        const sql = 'SELECT * FROM t_events WHERE e_id=?'
+        return db.query(sql, [this.e_id])
+    }
+
     add() {
         const sql = 'INSERT INTO t_events(e_id, e_title, e_date, e_thumbnail, e_img, e_description) VALUES (?, ?, ?, ?, ?, ?)'
         return db.query(sql, [this.e_id, this.e_title, this.e_date, this.e_thumbnail, this.e_img, this.e_description])
@@ -49,11 +59,6 @@ class Event {
 
     deleteOne() {
         const sql = 'DELETE FROM t_events WHERE e_id=?'
-        return db.query(sql, [this.e_id])
-    }
-
-    selectOne() {
-        const sql = 'SELECT * FROM t_events WHERE e_id=?'
         return db.query(sql, [this.e_id])
     }
 
@@ -94,6 +99,15 @@ selectAll = function (res) {
     ).subscribe(events => res.status(200).send(events))
 }
 
+selectLimit = function (startIndex, numberOfRecords, res) {
+    Event.selectLimit(startIndex, numberOfRecords).pipe(
+        rxO.catchError(error => {
+            logger.error({action: 'selectLimit', error: error})
+            res.status(500).send(false)
+            return rx.EMPTY
+        })
+    ).subscribe(events => res.status(200).send(events))
+}
 
 selectOne = function (id, res) {
     const event = new Event({e_id: id})
@@ -129,17 +143,26 @@ updateImg = function (req, res) {
 }
 
 deleteOne = function (id, res) {
-    const event = new Event({e_id: id})
-    event.deleteOne().pipe(
+    let event = new Event({e_id: id})
+    event.selectOne().pipe(
+        rxO.switchMap((data) => {
+            event = new Event(data.rows[0])
+            return event.e_id && event.e_thumbnail && event.e_img ? rx.of(true) : rx.EMPTY
+        }),
+        rxO.switchMap(() => event.e_thumbnail ? fdb.deleteFile(CONFIG.fdb_img, event.e_thumbnail) : rx.EMPTY),
+        rxO.switchMap(() => event.e_img ? fdb.deleteFile(CONFIG.fdb_img, event.e_img) : rx.EMPTY),
+        rxO.switchMap(() => event.deleteOne()),
         rxO.catchError(error => {
-            logger.error({action: 'selectAll', error: error})
+            logger.error({action: 'deleteOne', error: error})
             res.status(500).send(false)
             return rx.EMPTY
         })
     ).subscribe(() => res.status(200).send(true))
 }
 
+module.exports.Event = Event
 module.exports.selectAll = selectAll
+module.exports.selectLimit = selectLimit
 module.exports.selectOne = selectOne
 module.exports.add = add
 module.exports.updateText = updateText

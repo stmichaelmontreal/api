@@ -4,6 +4,7 @@ folders=(
 "events"
 "img"
 "test"
+"test_img"
 )
 
 for folder in "${folders[@]}"
