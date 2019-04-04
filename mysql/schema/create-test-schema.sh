@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
-mysql --host=localhost --user=root --password=Qweasd12 --execute="DROP SCHEMA IF EXISTS test;"
-mysql --host=localhost --user=root --password=Qweasd12 --execute="CREATE DATABASE test;"
-mysql --host=localhost --user=root --password=Qweasd12 --database=test < $(pwd)/t_events.sql
+db=test
+password=Qweasd12
+event=$(cat $(pwd)/t_events.sql)
+
+d1="DROP SCHEMA IF EXISTS $db;"
+d2="CREATE DATABASE $db;"
+d3="ALTER DATABASE $db CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;"
+
+mysql -h localhost -u root -p"$password" -e "$d1"
+mysql -h localhost -u root -p"$password" -e "$d2"
+mysql -h localhost -u root -p"$password" -e "$d3"
+mysql -h localhost -u root -p"$password" -D"$db" -e "$event"
