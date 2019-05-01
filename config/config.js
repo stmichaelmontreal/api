@@ -20,6 +20,9 @@ CONFIG.db_password = process.env.DB_PASSWORD || 'Qweasd12'
 
 CONFIG.fdb_root = process.env.FDB_ROOT || path.resolve(process.cwd(), 'fdb')
 CONFIG.fdb_img = process.env.FDB_IMG || 'img'
+
+CONFIG.token_secret = process.env.TOKEN_SECRET || 'superSecret123QWe'
+
 CONFIG.logger = logger
 
 module.exports = CONFIG

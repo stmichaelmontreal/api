@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
-db=test
-password=Qweasd12
-event=$(cat $(pwd)/t_events.sql)
-
-d1="DROP SCHEMA IF EXISTS $db;"
-d2="CREATE DATABASE $db;"
-d3="ALTER DATABASE $db CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;"
-
-mysql -h localhost -u root -p"$password" -e "$d1"
-mysql -h localhost -u root -p"$password" -e "$d2"
-mysql -h localhost -u root -p"$password" -e "$d3"
-mysql -h localhost -u root -p"$password" -D"$db" -e "$event"
+mysql --host=localhost --user=root --password=Qweasd12 --execute="DROP SCHEMA IF EXISTS test;"
+mysql --host=localhost --user=root --password=Qweasd12 --execute="CREATE DATABASE test;"
+mysql --host=localhost --user=root --password=Qweasd12 --execute="ALTER DATABASE test CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;"
+ev=$(pwd)/t_events.sql
+echo $ev
+mysql --host=localhost --user=root --password=Qweasd12 --database=test -e "/home/sv/WebstormProjects/api/mysql/schema/t_events.sql"
+#mysql --host=localhost --user=root --password=Qweasd12 --database=test << $(cat $(pwd)/t_users.sql)
+#mysql --host=localhost --user=root --password=Qweasd12 --database=test << $(cat $(pwd)/t_calendar.sql)
