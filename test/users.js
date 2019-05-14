@@ -24,55 +24,42 @@ test_record_2.email = 'test2@email.com'
 
 describe('USERS', () => {
 
-    describe('ADD, UPDATE, SELECT', () => {
+    after((done) => rx.concat([test_record_1.deleteOne()])
+        .pipe(rxO.concatAll())
+        .subscribe(() => done()))
 
-        after((done) => rx.concat([test_record_1.deleteOne(), test_record_2.deleteOne()])
-            .pipe(rxO.concatAll())
-            .subscribe(() => done()))
+    it('ADD', (done) => {
+        chai.request(server)
+            .post('/api/users/add')
+            .send(test_record_1)
+            .end((err, res) => {
+                res.should.have.status(200)
+                res.body.should.have.property('id')
+                res.body.id.length.should.be.equal(36)
+                test_record_1.id = res.body.id
+                done()
+            })
+    })
 
-        it('ADD', (done) => {
-            chai.request(server)
-                .post('/api/users')
-                .send(test_record_1)
-                .end((err, res) => {
-                    res.should.have.status(200)
-                    res.body.should.have.property('id')
-                    res.body.id.length.should.be.equal(36)
-                    test_record_1.id = res.body.id
-                    done()
-                })
-        })
-        it('ADD', (done) => {
-            chai.request(server)
-                .post('/api/users')
-                .send(test_record_2)
-                .end((err, res) => {
-                    res.should.have.status(200)
-                    res.body.should.have.property('id')
-                    res.body.id.length.should.be.equal(36)
-                    test_record_2.id = res.body.id
-                    done()
-                })
-        })
-        it('SELECT ALL', (done) => {
-            chai.request(server)
-                .get('/api/users')
-                .end((err, res) => {
-                    res.should.have.status(200)
-                    res.body.rows.length.should.be.at.least(2)
-                    done()
-                })
-        })
-        it('SELECT ONE', (done) => {
-            chai.request(server)
-                .get('/api/users/one/' + test_record_1.id)
-                .end((err, res) => {
-                    res.should.have.status(200)
-                    res.body.rows.length.should.be.eq(1)
-                    res.body.rows[0].should.have.property('id').eql(test_record_1.id)
-                    done()
-                })
-        })
+    it('SELECT ALL', (done) => {
+        chai.request(server)
+            .get('/api/users/all')
+            .end((err, res) => {
+                res.should.have.status(200)
+                res.body.rows.length.should.be.at.least(1)
+                done()
+            })
+    })
+
+    it('SELECT ONE', (done) => {
+        chai.request(server)
+            .get('/api/users/one/' + test_record_1.id)
+            .end((err, res) => {
+                res.should.have.status(200)
+                res.body.rows.length.should.be.eq(1)
+                res.body.rows[0].should.have.property('id').eql(test_record_1.id)
+                done()
+            })
     })
 
 })

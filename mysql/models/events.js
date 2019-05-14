@@ -67,6 +67,37 @@ class Event {
 
 }
 
+selectAll = function (res) {
+    Event.selectAll().pipe(
+        rxO.catchError(error => {
+            logger.error({action: 'Event.selectAll', error: error})
+            res.status(500).send(false)
+            return rx.EMPTY
+        })
+    ).subscribe(records => res.status(200).send(records))
+}
+
+selectLimit = function (startIndex, numberOfRecords, res) {
+    Event.selectLimit(startIndex, numberOfRecords).pipe(
+        rxO.catchError(error => {
+            logger.error({action: 'Event.selectLimit', error: error})
+            res.status(500).send(false)
+            return rx.EMPTY
+        })
+    ).subscribe(records => res.status(200).send(records))
+}
+
+selectOne = function (id, res) {
+    const event = new Event({id: id})
+    event.selectOne().pipe(
+        rxO.catchError(error => {
+            logger.error({action: 'Event.selectOne', error: error})
+            res.status(500).send(false)
+            return rx.EMPTY
+        })
+    ).subscribe(record => res.status(200).send(record))
+}
+
 add = function (req, res) {
     const event = new Event(req.body)
     event.when_created = new Date()
@@ -92,37 +123,6 @@ add = function (req, res) {
     ).subscribe(() => res.status(200).send({id: event.id}))
 }
 
-selectAll = function (res) {
-    Event.selectAll().pipe(
-        rxO.catchError(error => {
-            logger.error({action: 'Event.selectAll', error: error})
-            res.status(500).send(false)
-            return rx.EMPTY
-        })
-    ).subscribe(events => res.status(200).send(events))
-}
-
-selectLimit = function (startIndex, numberOfRecords, res) {
-    Event.selectLimit(startIndex, numberOfRecords).pipe(
-        rxO.catchError(error => {
-            logger.error({action: 'Event.selectLimit', error: error})
-            res.status(500).send(false)
-            return rx.EMPTY
-        })
-    ).subscribe(events => res.status(200).send(events))
-}
-
-selectOne = function (id, res) {
-    const event = new Event({id: id})
-    event.selectOne().pipe(
-        rxO.catchError(error => {
-            logger.error({action: 'Event.selectOne', error: error})
-            res.status(500).send(false)
-            return rx.EMPTY
-        })
-    ).subscribe(events => res.status(200).send(events))
-}
-
 updateText = function (req, res) {
     const event = new Event(req.body)
     event.updateText().pipe(
@@ -142,7 +142,7 @@ updateImg = function (req, res) {
             res.status(500).send(false)
             return rx.EMPTY
         })
-    ).subscribe(events => res.status(200).send(events))
+    ).subscribe(record => res.status(200).send(record))
 }
 
 deleteOne = function (id, res) {

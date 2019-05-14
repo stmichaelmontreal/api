@@ -11,45 +11,36 @@ const rx = require('rxjs')
 const rxO = require('rxjs/operators')
 const server = require('../server')
 const uuidV4 = require('uuid/v4')
-const eventModel = require('../mysql/models/events')
+const calendarModel = require('../mysql/models/calendar')
 
-let eventId = undefined
+const test_record_1 = new calendarModel.CalendarItem()
+test_record_1.calendar_date = '2019-01-01T00:00:00'
+test_record_1.description = 'Calendar item'
 
-const test_record_1 = {
-    "id": eventId,
-    "title": "title test",
-    "event_date": "2011-10-30",
-    "thumbnail": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQoAAAFmCAMAA",
-    "img": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQoAAAFmCAMAAACiIyT",
-    "description": "Bla bla bla l dsh fhdfhdghkdfhgkhfdkghdfkhg /n kdfhgkhdf kgjhd fdkghdd 'l'l45"
-}
+const test_record_2 = new calendarModel.CalendarItem()
+test_record_2.calendar_date = '2019-01-02T00:00:00'
+test_record_2.description = 'Calendar item 2'
 
-const test_record_2 = {
-    "id": eventId,
-    "title": "title test 2",
-    "event_date": "2011-12-12",
-    "description": "222222 222222 222222"
-}
-
-describe('EVENTS', () => {
+describe('CALENDAR', () => {
 
     describe('ADD, UPDATE, DELETE', () => {
         it('ADD', (done) => {
             chai.request(server)
-                .post('/api/events/add')
+                .post('/api/calendar/add')
                 .send(test_record_1)
                 .end((err, res) => {
                     res.should.have.status(200)
                     res.body.should.have.property('id')
                     res.body.id.length.should.be.equal(36)
                     test_record_1.id = res.body.id
+                    // assign id for update test
                     test_record_2.id = res.body.id
                     done()
                 })
         })
         it('UPDATE', (done) => {
             chai.request(server)
-                .put('/api/events/update/text')
+                .put('/api/calendar/update')
                 .send(test_record_2)
                 .end((err, res) => {
                     res.should.have.status(200)
@@ -59,18 +50,18 @@ describe('EVENTS', () => {
         })
         it('SELECT ONE AND TEST UPDATE', (done) => {
             chai.request(server)
-                .get('/api/events/one/' + test_record_2.id)
+                .get('/api/calendar/one/' + test_record_2.id)
                 .end((err, res) => {
                     res.should.have.status(200)
                     res.body.rows.length.should.be.eq(1)
                     res.body.rows[0].should.have.property('id').eql(test_record_2.id)
-                    res.body.rows[0].should.have.property('title').eql(test_record_2.title)
+                    res.body.rows[0].should.have.property('description').eql(test_record_2.description)
                     done()
                 })
         })
         it('DELETE', (done) => {
             chai.request(server)
-                .delete('/api/events/delete/' + test_record_2.id)
+                .delete('/api/calendar/delete/' + test_record_1.id)
                 .end((err, res) => {
                     res.should.have.status(200)
                     res.body.should.eql(true)
@@ -84,10 +75,8 @@ describe('EVENTS', () => {
         let listD = []
         before((done) => {
             for (let i = 0; i < 20; i++) {
-                const ev = new eventModel.Event(test_record_1)
+                const ev = new calendarModel.CalendarItem(test_record_1)
                 ev.id = uuidV4()
-                ev.img = ev.id
-                ev.thumbnail = ev.id
                 listI.push(ev.add())
                 listD.push(ev.deleteOne())
             }
@@ -115,7 +104,7 @@ describe('EVENTS', () => {
 
         it('SELECT LIMIT', (done) => {
             chai.request(server)
-                .get('/api/events/limit/5/10')
+                .get('/api/calendar/limit/5/10')
                 .end((err, res) => {
                     res.should.have.status(200)
                     res.body.rows.length.should.be.equal(10)

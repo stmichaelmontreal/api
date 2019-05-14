@@ -3,21 +3,44 @@ const logger = CONFIG.logger
 const express = require('express')
 const router = express.Router()
 const jwt = require('jsonwebtoken')
+const auth = require('../mysql/models/auth')
 
 router.post('/', function (req, res) {
     res.status(200).send({message: 'Welcome to the coolest API on earth!'})
 })
 
+router.post('/login', (req, res) => {
+    const authObj = new auth.Auth(req.body)
+    auth.checkLogin(authObj)
+        .subscribe((data) => {
+            if (data.status === 0) {
+                res.status(200).send(data)
+            } else {
+                res.status(401).send(data)
+            }
+        })
+})
+
 router.post('/auth', (req, res) => {
-    const user = req.body.user;
-    const pwd = req.body.pwd;
-    const payload = {
-        id: 'sv'
-    }
-    const token = jwt.sign(payload, CONFIG.token_secret, {
-        expiresIn: 60000 // expires in 24 hours
-    })
-    res.status(200).send({ auth: true, token: token })
+    const authObj = new auth.Auth(req.body)
+    auth.checkPassword(authObj)
+        .subscribe(isAuth=> {
+            if (!isAuth) {
+                res.status(401).send({auth: false, message: 'Error auth!'})
+                return
+            }
+            const payload = {
+                id: authObj.login
+            }
+            const token = jwt.sign(payload, CONFIG.token_secret, {
+                expiresIn: 60000 // expires in 24 hours
+            })
+            res.status(200).send({auth: true, token: token})
+        })
+})
+
+router.put('/users/reset-password', (req, res) => {
+    auth.resetPassword(req, res)
 })
 
 router.use(function (req, res, next) {

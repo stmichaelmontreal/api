@@ -4,3 +4,4 @@ SET DB=--database=test
 %MYSQL% --execute="CREATE DATABASE test;"
 %MYSQL% %DB% < t_events.sql
 %MYSQL% %DB% < t_users.sql
+%MYSQL% %DB% < t_calendar.sql

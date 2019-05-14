@@ -4,31 +4,47 @@ const {format} = winston
 const {combine, timestamp, printf, prettyPrint, json} = format
 const path = require('path')
 
+// const combinedLogStream = rfs('combined.log', {
+//     interval: '1m', // rotate daily
+//     path: path.join(__dirname, 'log')
+// })
+//
+// const errorLogStream = rfs('error.log', {
+//     interval: '1m', // rotate daily
+//     path: path.join(__dirname, 'log')
+// })
+//
+// const fdbLogStream = rfs('fdb.log', {
+//     interval: '1m', // rotate monthly
+//     path: path.join(__dirname, 'log')
+// })
+//
+// const fdbErrorLogStream = rfs('fdb_error.log', {
+//     interval: '1m', // rotate monthly
+//     path: path.join(__dirname, 'log')
+// })
+
 const combinedLogStream = rfs('combined.log', {
-    interval: '1m', // rotate daily
     path: path.join(__dirname, 'log')
 })
 
 const errorLogStream = rfs('error.log', {
-    interval: '1m', // rotate daily
     path: path.join(__dirname, 'log')
 })
 
 const fdbLogStream = rfs('fdb.log', {
-    interval: '1m', // rotate monthly
     path: path.join(__dirname, 'log')
 })
 
 const fdbErrorLogStream = rfs('fdb_error.log', {
-    interval: '1m', // rotate monthly
     path: path.join(__dirname, 'log')
 })
 
-const myFormat = printf(({ timestamp, level, message }) => {
+const myFormat = printf(({timestamp, level, message}) => {
     return `${timestamp} ${level}: ${message}`
 })
 
-const fdbFormat = printf(({ timestamp, level, message }) => {
+const fdbFormat = printf(({timestamp, level, message}) => {
     return `${timestamp} ${level}: ${message}`
 })
 
