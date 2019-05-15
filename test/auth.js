@@ -49,7 +49,7 @@ describe('AUTH', () => {
     it('AUTH WRONG PASSWORD', (done) => {
         chai.request(server)
             .post('/api/auth')
-            .send({login: 'test', password: '111'})
+            .send({login: test_record_1.login, password: 'blablabla'})
             .end((err, res) => {
                 res.should.have.status(401)
                 res.body.auth.should.eql(false)
@@ -71,10 +71,10 @@ describe('AUTH', () => {
     it('LOGIN WRONG USER', (done) => {
         chai.request(server)
             .post('/api/login')
-            .send({login: 'blabla'})
+            .send({login: 'blablabla'})
             .end((err, res) => {
                 res.should.have.status(401)
-                res.body.login.should.eql('blabla')
+                res.body.login.should.eql('blablabla')
                 res.body.error.should.eql('Can\'t find login!')
                 done()
             })
@@ -92,10 +92,9 @@ describe('AUTH', () => {
     })
 
     it('AUTH AFTER RESET', (done) => {
-        test_record_1.password = test_record_1.new_password
         chai.request(server)
             .post('/api/auth')
-            .send(test_record_1)
+            .send({login: test_record_1.login, password: test_record_1.new_password})
             .end((err, res) => {
                 res.should.have.status(200)
                 res.body.should.have.property('auth')

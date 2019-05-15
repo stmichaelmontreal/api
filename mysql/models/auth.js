@@ -2,9 +2,7 @@ const CONFIG = require('../../config/config')
 const logger = CONFIG.logger
 const rx = require('rxjs')
 const rxO = require('rxjs/operators')
-const fdb = require('../../fdb-lib/fdb')
 const db = require('../db')
-const uuidV4 = require('uuid/v4')
 const bcrypt = require('bcryptjs')
 
 class Auth {
@@ -57,10 +55,9 @@ checkLogin = function (obj) {
 
 checkPassword = function (obj) {
     return obj.getPassword().pipe(
-        rxO.map(data =>
-            data.rows.length > 0
-                ? bcrypt.compareSync(obj.password, data.rows[0].password)
-                : false
+        rxO.map(data => data.rows.length > 0
+            ? bcrypt.compareSync(obj.password, data.rows[0].password)
+            : false
         ),
         rxO.catchError(error => {
             logger.error({action: 'Auth.checkPassword', error: error})
@@ -72,11 +69,9 @@ checkPassword = function (obj) {
 resetPassword = function (req, res) {
     const authObj = new Auth(req.body)
     return checkPassword(authObj).pipe(
-        rxO.switchMap(isChecked => {
-                return isChecked
-                    ? authObj.resetPassword()
-                    : rx.of({reset: false})
-            }
+        rxO.switchMap(isChecked => isChecked
+            ? authObj.resetPassword()
+            : rx.of(false)
         ),
         rxO.catchError(error => {
             logger.error({action: 'Auth.resetPassword', error: error})

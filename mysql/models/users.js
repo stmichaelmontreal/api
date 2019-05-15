@@ -2,7 +2,6 @@ const CONFIG = require('../../config/config')
 const logger = CONFIG.logger
 const rx = require('rxjs')
 const rxO = require('rxjs/operators')
-const fdb = require('../../fdb-lib/fdb')
 const db = require('../db')
 const uuidV4 = require('uuid/v4')
 const bcrypt = require('bcryptjs')
@@ -86,35 +85,6 @@ checkLogin = function (login) {
     )
 }
 
-checkPassword = function (login, password) {
-    return User.checkPassword(login).pipe(
-        rxO.map(data =>
-            data.rows.length > 0
-                ? bcrypt.compareSync(password, data.rows[0].password)
-                : false
-        ),
-        rxO.catchError(error => {
-            logger.error({action: 'User.checkPassword', error: error})
-            return rx.of(false)
-        })
-    )
-}
-
-resetPassword = function (login, oldPassword, newPassword) {
-    return User.checkPassword(login, oldPassword).pipe(
-        rxO.map(isChecked => {
-                return isChecked
-                    ? User.resetPassword(login, newPassword)
-                    : rx.of(false)
-            }
-        ),
-        rxO.catchError(error => {
-            logger.error({action: 'User.resetPassword', error: error})
-            return rx.of(false)
-        })
-    ).subscribe(() => res.status(200).send(true))
-}
-
 selectAll = function (res) {
     User.selectAll().pipe(
         rxO.catchError(error => {
@@ -152,8 +122,6 @@ add = function (req, res) {
 
 module.exports.User = User
 module.exports.checkLogin = checkLogin
-module.exports.checkPassword = checkPassword
-module.exports.resetPassword = resetPassword
 module.exports.selectAll = selectAll
 module.exports.selectOne = selectOne
 module.exports.add = add
